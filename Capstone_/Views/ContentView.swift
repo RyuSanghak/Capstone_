@@ -1,24 +1,39 @@
-//
-//  ContentView.swift
-//  Capstone_
-//
-//  Created by Sanghak Ryu on 9/25/24.
-//
-
+// ContentView.swift
 import SwiftUI
 
 struct ContentView: View {
+    @State private var isSplashActive = false
+    @EnvironmentObject var mapViewModel: MapViewModel
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            if isSplashActive {
+                VStack{
+                    CampusNavigatorView()
+                    
+                    /*
+                    MapView(mapViewModel: mapViewModel) // navigate to MapView
+                        .transition(.opacity)
+                    */
+                }
+                
+            } else {
+                // SplashView
+                SplashView()
+            }
         }
-        .padding()
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                withAnimation(.easeInOut(duration: 1)) {
+                    isSplashActive = true
+                }
+            }
+        }
     }
+        //.animation(.easeInOut(duration: 1), value: isActive)
 }
 
 #Preview {
     ContentView()
 }
+

@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct Capstone_App: App {
+    @StateObject var mapViewModel = MapViewModel()
+    
     var body: some Scene {
         WindowGroup {
-            SplashView()
+            ContentView()
+                .environmentObject(mapViewModel)
         }
     }
 }

@@ -6,13 +6,24 @@
 //
 
 import SwiftUI
+import SceneKit
 
 struct MapView: View {
+    @ObservedObject var mapViewModel: MapViewModel
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack{
+            if let scene = mapViewModel.scene {
+                SceneView(
+                    scene: scene,
+                    options: [.allowsCameraControl , .autoenablesDefaultLighting]
+                )
+                .edgesIgnoringSafeArea(.all)
+            } else {
+                Text("Loading scene...")
+            }
+        }
     }
 }
 
-#Preview {
-    MapView()
-}
+
