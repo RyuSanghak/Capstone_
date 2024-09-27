@@ -9,12 +9,12 @@ struct ContentView: View {
         ZStack {
             if isSplashActive {
                 VStack{
-                    CampusNavigatorView()
+                    //CampusNavigatorView()
                     
-                    /*
+                    
                     MapView(mapViewModel: mapViewModel) // navigate to MapView
                         .transition(.opacity)
-                    */
+                    
                 }
                 
             } else {

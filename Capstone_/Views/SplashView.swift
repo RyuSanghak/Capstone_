@@ -11,7 +11,7 @@ struct SplashView: View {
                 .ignoresSafeArea()
             
             VStack {
-                Image("Capstone_Logo") // 프로젝트의 Assets에 있는 이미지 이름
+                Image("Capstone_Logo")
                     .resizable()
                     .cornerRadius(30)
                     .aspectRatio(contentMode: .fit)
