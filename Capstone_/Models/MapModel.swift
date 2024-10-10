@@ -12,3 +12,20 @@ struct IndoorMap: Identifiable {
     let name: String
     let filename: String
 }
+
+struct nodes {
+    let name: String
+    let x: Double
+    let y: Double
+    let z: Double
+}
+
+struct edges{
+    let from: String
+    let to: String
+    //let x1: Double
+    //let x2: Double
+    //let y1: Double
+    //  let y2: Double
+    //let distance: Double
+}

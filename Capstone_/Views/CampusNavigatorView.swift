@@ -9,7 +9,6 @@ import SwiftUI
 
 struct CampusNavigatorView: View {
     
-    
     @State private var selectedCampus : String? = "MainCampus"
     @State private var selectedBuilding: String?
     @State private var selectedRoom: String?
