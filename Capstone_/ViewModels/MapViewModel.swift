@@ -20,13 +20,14 @@ class MapViewModel: ObservableObject {
     private func loadMaps() {
         maps = [
             IndoorMap(name: "MFH_1", filename: "MFH_1.usdz"),
+            IndoorMap(name: "MFH_2", filename: "MFH_2.usdz"),
             
         ]
         selectedMap = maps.first // init selectedMap
     }
 
     
-    public func createMapScene(mapName: String) -> SCNScene {
+    func createMapScene(mapName: String) -> SCNScene {
         guard let selectedMap = selectedMap else {
             scene = nil
             return SCNScene() // return empty scene
@@ -36,29 +37,22 @@ class MapViewModel: ObservableObject {
         
         if let mapNode = loadUSDZModel(named: selectedMap.name){
             scene.rootNode.addChildNode(mapNode)
-            
-            for n in mapNodes{
-                
-                let a = createSphereNode(position: SCNVector3(x: Float(n.x), y: Float(n.y), z: Float(n.z)))
-                scene.rootNode.addChildNode(a)
-                
-            }
-               
-    
-        
             /*
-             let room_1620 = createSphereNode(position: SCNVector3(x: -279.904235, y: 404.393037, z: 1))
-             let room_1630 = createSphereNode(position: SCNVector3(x: -260.845713, y: 404.50388, z: 1))
-             */
+            let node1 = createSphereNode(position: SCNVector3(x: 1, y: -1, z: 3))
+            let node2 = createSphereNode(position: SCNVector3(x: 2, y: -5, z: 3))
+            let node3 = createSphereNode(position: SCNVector3(x: 3, y: 3, z: 3))
             
-            /* 노드 간 선 그리기
+            scene.rootNode.addChildNode(node1)
+            scene.rootNode.addChildNode(node2)
+            scene.rootNode.addChildNode(node3)
+            
+            // 노드 간 선 그리기
             let line1 = createLine(from: node1.position, to: node2.position)
             let line2 = createLine(from: node2.position, to: node3.position)
             
             scene.rootNode.addChildNode(line1)
             scene.rootNode.addChildNode(line2)
             */
-                
             /*
             let overViewCamNode = SCNNode()
             overViewCamNode.camera = SCNCamera()
@@ -79,7 +73,7 @@ class MapViewModel: ObservableObject {
     }
     
     func createSphereNode(position: SCNVector3) -> SCNNode {
-        let sphere = SCNSphere(radius: 10)
+        let sphere = SCNSphere(radius: 0.1)
         sphere.firstMaterial?.diffuse.contents = UIColor.red
 
         let sphereNode = SCNNode(geometry: sphere)
@@ -126,7 +120,7 @@ class MapViewModel: ObservableObject {
             // set the position and scale for mapNode
             mapNode.position = SCNVector3(0, 0, 0)
             mapNode.scale = SCNVector3(0.01, 0.01, 0.01) // 1/100 scale
-
+            //mapNode.scale = SCNVector3(1, 1, 1)
             // set name of mapNode
             mapNode.name = selectedMap?.name
 

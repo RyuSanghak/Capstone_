@@ -9,11 +9,11 @@ import SwiftUI
 import SceneKit
 
 struct MapView: View {
-    @ObservedObject var mapViewModel: MapViewModel
+    @ObservedObject var viewModel: MapViewModel
 
     var body: some View {
         VStack{
-            if let scene = mapViewModel.scene {
+            if let scene = viewModel.scene {
                 SceneView(
                     scene: scene,
                     options: [.allowsCameraControl , .autoenablesDefaultLighting]

@@ -77,7 +77,7 @@ struct DropDownView: View {
             .background(scheme == .dark ? .black : .white)
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .shadow(color: .primary.opacity(0.2), radius: 4)
-            .frame(width: 200)
+            .frame(width: 300)
 
         }
     }
