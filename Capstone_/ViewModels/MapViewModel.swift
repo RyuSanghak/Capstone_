@@ -19,7 +19,7 @@ class MapViewModel: ObservableObject {
     
     private func loadMaps() {
         maps = [
-            IndoorMap(name: "MFH_1", filename: "MFH_1.usdz"),
+            IndoorMap(name: "MFH_2", filename: "MFH_2.usdz"),
             
         ]
         selectedMap = maps.first // init selectedMap
@@ -37,13 +37,14 @@ class MapViewModel: ObservableObject {
         if let mapNode = loadUSDZModel(named: selectedMap.name){
             scene.rootNode.addChildNode(mapNode)
             
+            /* draw dots
             for n in mapNodes{
                 
                 let a = createSphereNode(position: SCNVector3(x: Float(n.x), y: Float(n.y), z: Float(n.z)))
                 scene.rootNode.addChildNode(a)
                 
             }
-               
+             */
     
         
             /*
