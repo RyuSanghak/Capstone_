@@ -4,17 +4,22 @@ import SwiftUI
 struct ContentView: View {
     @State private var isSplashActive = false
     @EnvironmentObject var mapViewModel: MapViewModel
+    @EnvironmentObject var arViewModel: ARViewModel
 
     var body: some View {
         ZStack {
             if isSplashActive {
                 VStack{
-                    //CampusNavigatorView()
+                   
+                    CampusNavigatorView()
+                    /*
+                    ARView(viewModel: arViewModel)
+                        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.7)
                     
-                    
-                    MapView(mapViewModel: mapViewModel) // navigate to MapView
+                    MapView(viewModel: mapViewModel) // navigate to MapView
+                        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.3)
                         .transition(.opacity)
-                    
+                    */
                 }
                 
             } else {
@@ -33,7 +38,5 @@ struct ContentView: View {
         //.animation(.easeInOut(duration: 1), value: isActive)
 }
 
-#Preview {
-    ContentView()
-}
+
 
