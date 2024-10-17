@@ -1,20 +1,17 @@
-//
-//  Capstone_App.swift
-//  Capstone_
-//
-//  Created by Sanghak Ryu on 9/25/24.
-//
 
 import SwiftUI
+import ARKit
 
 @main
 struct Capstone_App: App {
     @StateObject var mapViewModel = MapViewModel()
+    @StateObject var arViewModel = ARViewModel()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(mapViewModel)
+                .environmentObject(arViewModel)
         }
     }
 }
