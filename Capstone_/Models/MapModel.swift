@@ -23,9 +23,5 @@ struct nodes {
 struct edges{
     let from: String
     let to: String
-    //let x1: Double
-    //let x2: Double
-    //let y1: Double
-    //  let y2: Double
-    //let distance: Double
+    let distance: Double
 }

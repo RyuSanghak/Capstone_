@@ -2,7 +2,7 @@
 import SwiftUI
 import ARKit
 
-@main
+//@main
 struct Capstone_App: App {
     @StateObject var mapViewModel = MapViewModel()
     @StateObject var arViewModel = ARViewModel()

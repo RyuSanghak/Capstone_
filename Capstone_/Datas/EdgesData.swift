@@ -10,6 +10,7 @@ import Foundation
     
     
 let connectNodes: [edges] = [
+  //edges(from: "1", to: "2", distance: testing())
     edges(from: "1", to: "2"),
     edges(from: "1", to: "59"),
     edges(from: "2", to: "3"),
