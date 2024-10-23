@@ -19,7 +19,8 @@ let mapNodesTwo: [nodes] = [
     nodes(name: "Room 2200", x: 1.07, y: 1.10, z: 0.2),
     nodes(name: "Room 2210", x: 1.07, y: 1.365, z: 0.2),
     nodes(name: "Room 2220", x: 1.07, y: 3.719, z: 0.2),
-    nodes(name: "Room 2240", x: 1.07, y: 3.978, z: 0.2),
+    nodes(name: "Room 2230", x: 1.07, y: 3.981, z: 0.2),
+    nodes(name: "Room 2240", x: -1.023, y: 3.978, z: 0.2),
     nodes(name: "Room 2250", x: -1.023, y: 3.722, z: 0.2),
     nodes(name: "Room 2260", x: -1.023, y: 1.365, z: 0.2),
     nodes(name: "Room 2270", x: -1.023, y: 1.104, z: 0.2),
@@ -114,12 +115,13 @@ let mapNodesTwo: [nodes] = [
     nodes(name: "30", x: -5.746, y: 3.574, z: 0.2),
     nodes(name: "31", x: -5.746, y: 2.787, z: 0.2),
     nodes(name: "32", x: -5.746, y: 2.00, z: 0.2),
-    nodes(name: "33", x: -4.643, y: 2.00, z: 0.2),
+    nodes(name: "33", x: -4.648, y: 2.00, z: 0.2),
     nodes(name: "34", x: -3.541, y: 2.00, z: 0.2),
     nodes(name: "35", x: -3.541, y: 1.361, z: 0.2),
     nodes(name: "36", x: -3.541, y: 0.722, z: 0.2),
     nodes(name: "37", x: -4.648, y: 0.722, z: 0.2),
     nodes(name: "38", x: -5.755, y: 0.722, z: 0.2),
-    nodes(name: "39", x: -5.755, y: -0.269, z: 0.2)
+    nodes(name: "39", x: -5.755, y: -0.269, z: 0.2),
+    nodes(name: "40", x: 2.923, y: -2.117, z: 0.2)
 ]
 
