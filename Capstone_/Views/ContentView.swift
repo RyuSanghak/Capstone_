@@ -4,6 +4,7 @@ import SwiftUI
 struct ContentView: View {
     @State private var isSplashActive = false
     @EnvironmentObject var mapViewModel: MapViewModel
+    @EnvironmentObject var mapViewModel2: MapViewModel2
     @EnvironmentObject var arViewModel: ARViewModel
 
     var body: some View {
@@ -11,15 +12,19 @@ struct ContentView: View {
             if isSplashActive {
                 VStack{
                    
-                    CampusNavigatorView()
-                    /*
-                    ARView(viewModel: arViewModel)
-                        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.7)
+//                    CampusNavigatorView()
                     
-                    MapView(viewModel: mapViewModel) // navigate to MapView
+//                    ARView(viewModel: arViewModel)
+//                        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.7)
+                    
+                    MapView(viewModel: mapViewModel) // navigate to MapView floor 1
                         .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.3)
                         .transition(.opacity)
-                    */
+                    
+//                        MapView(viewModel: mapViewModel2) // navigate to MapView floor2
+//                        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.3)
+//                        .transition(.opacity)
+                    
                 }
                 
             } else {
