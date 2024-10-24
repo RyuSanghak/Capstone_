@@ -14,7 +14,7 @@ class HeadingProvider: NSObject, ObservableObject, CLLocationManagerDelegate {
             locationManager.headingFilter = kCLHeadingFilterNone
             locationManager.startUpdatingHeading()
         } else {
-            print("나침반 사용 불가")
+            print("HeadingProvider Unavailable")
         }
     }
 

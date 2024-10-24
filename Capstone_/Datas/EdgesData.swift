@@ -74,7 +74,11 @@ let connectNodes: [edges] = [
     edges(from: "57", to: "59")
 ]
 
-func testing() {
+/*
+ 
+
+
+func calculateEdgeDistance() {
     for edge in connectNodes{
         var x1: Double? = nil
         var y1: Double? = nil
@@ -103,24 +107,5 @@ func testing() {
     }
 }
 
-
-
-
-
-struct testView: View {
-    var body: some View {
-        VStack {
-            Text("Calculating Distance...")
-                .onAppear {
-                    // Call the function when the view appears with the first edgec
-                    testing()
-                }
-        }
-        .padding()
-    }
-}
-
-#Preview {
-    testView()
-}
+*/
 
