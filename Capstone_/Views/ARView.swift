@@ -49,6 +49,9 @@ struct ARView: View {
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
+            .onAppear(){
+                findPath()
+            }
             //.padding(.bottom, 50)
 
             
