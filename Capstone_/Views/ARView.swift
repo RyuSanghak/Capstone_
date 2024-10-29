@@ -4,7 +4,6 @@ import SceneKit
 
 struct ARView: View {
     @ObservedObject var viewModel: ARViewModel
-    @ObservedObject var dijkstra = Dijkstra()
     var body: some View {
         VStack {
             ARViewContainer(viewModel: viewModel)
@@ -33,7 +32,7 @@ struct ARView: View {
             */
         }
         .onAppear(){
-            dijkstra.createGraphList(nodes: mapNodes, edges: connectNodes)
+            findPath(buildingName: "asef", start: "3", end: "39")
         }
     }
 }

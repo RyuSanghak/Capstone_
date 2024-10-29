@@ -23,6 +23,9 @@ struct MapView: View {
                 Text("Loading scene...")
             }
         }
+        .onAppear(){
+           
+        }
     }
 }
 

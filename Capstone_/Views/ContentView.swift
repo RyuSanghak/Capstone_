@@ -6,7 +6,6 @@ struct ContentView: View {
     @EnvironmentObject var mapViewModel: MapViewModel
     @EnvironmentObject var arViewModel: ARViewModel
     @ObservedObject var headingProvider = HeadingProvider()
-    @ObservedObject var dijkstra = Dijkstra()
 
     var body: some View {
         ZStack {
