@@ -55,7 +55,7 @@ func printCost(for path: [GKGraphNode]) {
     
 }
 
-func findPath(buildingName: String, start: String, end: String) {
+func findPath(buildingName: String, start: String, end: String) { 
     
     var nodeList: [MyNode] = []
     
@@ -83,7 +83,7 @@ func findPath(buildingName: String, start: String, end: String) {
     printPath(path)
     printCost(for: path)
     
-    path.compactMap({ $0 as? MyNode}).forEach { node in
+    path.compactMap({ $0 as? MyNode}).forEach { node in  // make path list as String
         pathList.append(node.name)
     }
     
