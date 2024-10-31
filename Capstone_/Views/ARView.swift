@@ -32,7 +32,7 @@ struct ARView: View {
             */
         }
         .onAppear(){
-            //findPath(buildingName: "asef", start: "f1n3", end: "f1n39")
+            viewModel.startARSession()
         }
     }
 }

@@ -46,7 +46,7 @@ class MapViewModel: ObservableObject {
                 
             }
              */
-    
+            
         
             /*
             let node1 = createSphereNode(position: SCNVector3(x: 1, y: -1, z: 3))
@@ -157,4 +157,5 @@ class MapViewModel: ObservableObject {
         }
             
     }
+    
 }

@@ -24,7 +24,7 @@ struct MapView: View {
             }
         }
         .onAppear(){
-            findPath(buildingName: "mapNodes", start: "f1n3", end: "f1n39")
+            findPath(buildingName: "mapNodes", start: "f1n3", end: "f1n30")
         }
     }
 }
