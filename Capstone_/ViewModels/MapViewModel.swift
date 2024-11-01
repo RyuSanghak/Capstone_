@@ -23,7 +23,7 @@ class MapViewModel: ObservableObject {
             IndoorMap(name: "MFH_2", filename: "MFH_2.usdz"),
             
         ]
-        selectedMap = maps.last // init selectedMap
+        selectedMap = maps.first // init selectedMap
     }
 
     
@@ -35,59 +35,57 @@ class MapViewModel: ObservableObject {
 
         let scene = SCNScene()
         
-        if let mapNode = loadUSDZModel(named: selectedMap.name) {
+        if let mapNode = loadUSDZModel(named: selectedMap.name){
             scene.rootNode.addChildNode(mapNode)
-
-            // Call the function to create nodes and edges
-            createNodesAndEdges(mapNodes: mapNodesTwo, connectNodes: connectNodes2, scene: scene)
             
-            // Optional: Add camera setup here
+            /* draw dots
+            for n in mapNodes{
+                
+                let a = createSphereNode(position: SCNVector3(x: Float(n.x), y: Float(n.y), z: Float(n.z)))
+                scene.rootNode.addChildNode(a)
+                
+            }
+             */
+            
+        
+            /*
+            let node1 = createSphereNode(position: SCNVector3(x: 1, y: -1, z: 3))
+            let node2 = createSphereNode(position: SCNVector3(x: 2, y: -5, z: 3))
+            let node3 = createSphereNode(position: SCNVector3(x: 3, y: 3, z: 3))
+            
+            scene.rootNode.addChildNode(node1)
+            scene.rootNode.addChildNode(node2)
+            scene.rootNode.addChildNode(node3)
+            
+            // 노드 간 선 그리기
+            let line1 = createLine(from: node1.position, to: node2.position)
+            let line2 = createLine(from: node2.position, to: node3.position)
+            
+            scene.rootNode.addChildNode(line1)
+            scene.rootNode.addChildNode(line2)
+            */
+            /*
             let overViewCamNode = SCNNode()
             overViewCamNode.camera = SCNCamera()
             overViewCamNode.position = SCNVector3(x: 0, y: 4000, z: 0)
             overViewCamNode.eulerAngles = SCNVector3(x: -.pi / 2, y: 0, z: 0)
             overViewCamNode.look(at: SCNVector3(x: 0, y: 0, z: 0))
             overViewCamNode.camera?.usesOrthographicProjection = true
+            //mapNode.addChildNode(overViewCamNode)
+             */
         }
 
         print(scene.rootNode.scale)
         print(scene.rootNode.boundingBox)
         
+        
+
         return scene
     }
-
     
-    func createNodesAndEdges(mapNodes: [nodes], connectNodes: [edges], scene: SCNScene) {
-        // Create a dictionary to store node positions
-        var nodePositions = [String: SCNNode]()
-        
-        // Add nodes (dots) to the scene
-        for nodeData in mapNodes {
-            // If the node's name is "3", make it blue, otherwise keep it red
-            let color: UIColor = nodeData.name == "3" ? .blue : .red
-            
-            let node = createSphereNode(position: SCNVector3(x: Float(nodeData.x), y: Float(nodeData.y), z: Float(nodeData.z)), color: color)
-            node.name = nodeData.name // Optionally set the name of the node
-            scene.rootNode.addChildNode(node)
-            
-            // Store node position for connecting edges
-            nodePositions[nodeData.name] = node
-        }
-        
-        // Add edges (lines) between nodes
-        for edgeData in connectNodes {
-            if let fromNode = nodePositions[edgeData.from], let toNode = nodePositions[edgeData.to] {
-                let line = createLine(from: fromNode.position, to: toNode.position)
-                scene.rootNode.addChildNode(line)
-            }
-        }
-    }
-
-
-    
-    func createSphereNode(position: SCNVector3, color: UIColor = .red) -> SCNNode {
+    func createSphereNode(position: SCNVector3) -> SCNNode {
         let sphere = SCNSphere(radius: 0.1)
-        sphere.firstMaterial?.diffuse.contents = color
+        sphere.firstMaterial?.diffuse.contents = UIColor.red
 
         let sphereNode = SCNNode(geometry: sphere)
         sphereNode.position = position
@@ -132,8 +130,8 @@ class MapViewModel: ObservableObject {
 
             // set the position and scale for mapNode
             mapNode.position = SCNVector3(0, 0, 0)
-//            mapNode.scale = SCNVector3(0.01, 0.01, 0.01) // 1/100 scale
-            mapNode.scale = SCNVector3(1, 1, 1)
+            mapNode.scale = SCNVector3(0.01, 0.01, 0.01) // 1/100 scale
+            //mapNode.scale = SCNVector3(1, 1, 1)
             // set name of mapNode
             mapNode.name = selectedMap?.name
 
@@ -159,4 +157,5 @@ class MapViewModel: ObservableObject {
         }
             
     }
+    
 }

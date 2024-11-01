@@ -23,6 +23,9 @@ struct MapView: View {
                 Text("Loading scene...")
             }
         }
+        .onAppear(){
+            findPath(buildingName: "mapNodes", start: "Room 1610", end: "Stair C1029")
+        }
     }
 }
 
