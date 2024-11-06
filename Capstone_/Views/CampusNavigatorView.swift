@@ -11,9 +11,13 @@ struct CampusNavigatorView: View {
     
     @State private var selectedCampus : String? = "MainCampus"
     @State private var selectedBuilding: String?
-    @State private var selectedRoom: String?
-
-
+    @State private var startRoom: String?
+    @State private var endRoom: String?
+    @State private var path = NavigationPath()
+    @State private var isSplashActive = false
+    @EnvironmentObject var mapViewModel: MapViewModel
+    @EnvironmentObject var arViewModel: ARViewModel
+    @State private var isPressed = false
     
     var filteredBuildings: [String] {
         switch selectedCampus {
@@ -28,44 +32,87 @@ struct CampusNavigatorView: View {
         }
     }
     
-    var filteredRooms: [String] {
+    var startRooms: [String] {
         switch selectedBuilding {
         case "Memorial Field House":
-            return FH1F
+            return FH_START
         case "Engineering":
             return engineeringBuildings
         case "MainCampus":
             return mainCampusBuildings
         default:
-            return ["hi"]
+            return ["Please Select Building First"]
+        }
+    }
+    
+    var endRooms: [String] {
+        switch selectedBuilding {
+        case "Memorial Field House":
+            return FH_END
+        case "Engineering":
+            return engineeringBuildings
+        case "MainCampus":
+            return mainCampusBuildings
+        default:
+            return ["Please Select Building First"]
         }
     }
     
     
     var body: some View {
-        VStack(spacing: 16){
-            DropDownView(title: "Campus",
-                         prompt: "Select",
-                         options: campus,
-                         maxHeight: 140,
-                         selection: $selectedCampus)
-                                
-            DropDownView(title: "Buildings",
-                         prompt: "Select",
-                         options: filteredBuildings,
-                         maxHeight: 200,
-                         selection: $selectedBuilding)
-            
-            DropDownView(title: "Rooms",
-                         prompt: "Select",
-                         options: filteredRooms,
-                         maxHeight: 200,
-                         selection: $selectedRoom)
+        NavigationView {
+            VStack(spacing: 16){
+                if isSplashActive {
+                    
+                     DropDownView(title: "Campus",
+                     prompt: "Select",
+                     options: campus,
+                     maxHeight: 140,
+                     selection: $selectedCampus)
+                     
+                     DropDownView(title: "Buildings",
+                     prompt: "Select",
+                     options: filteredBuildings,
+                     maxHeight: 200,
+                     selection: $selectedBuilding)
+                     
+                     DropDownView(title: "Start Rooms",
+                     prompt: "Select",
+                     options: startRooms,
+                     maxHeight: 200,
+                     selection: $startRoom)
+                     
+                     DropDownView(title: "End Rooms",
+                     prompt: "Select",
+                     options: endRooms,
+                     maxHeight: 200,
+                     selection: $endRoom)
+                     
+                    NavigationLink(destination: ContentView()){
+                        Text("next")
+                            .padding()
+                            .background(.regularMaterial)
+                            .colorScheme(.dark)
+                            .cornerRadius(12)
+                            .font(.largeTitle.bold())
+                            .foregroundColor(.primary)
+                    }
+                    .environmentObject(mapViewModel)
+                    .environmentObject(arViewModel)
+                } else {
+                    SplashView()
+                }
+                
+            }
+            .onAppear(){
+                findPath(buildingName: "mapNodes", start: startRoom ?? "Room 1030", end: endRoom ?? "Room 1400K")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    withAnimation(.easeInOut(duration: 1)) {
+                        isSplashActive = true
+                    }
+                }
+            }
         }
     }
-
 }
 
-#Preview {
-    CampusNavigatorView()
-}

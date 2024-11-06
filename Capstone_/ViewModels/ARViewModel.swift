@@ -8,12 +8,18 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     
     @Published var arConfiguration: ARWorldTrackingConfiguration = ARWorldTrackingConfiguration()
     
-    private var planeNodes: [ARPlaneAnchor: SCNNode] = [:]
-    private var dotNodes: [SCNNode] = []
-    var arrowNode: SCNNode?
-    var startPosition: SCNVector3?
+    var currentNodeIndex: Int = 0  // 현재 노드의 인덱스
+    var currentNode: SCNNode?      // 현재 표시되는 노드
     var initialAnchor: ARAnchor?
-
+    var distanceTextNode: SCNText?
+    
+    struct MapNode {
+        var name: String
+        var x: Float  // 가상 좌표계의 x 좌표
+        var y: Float  // 가상 좌표계의 y 좌표
+    }
+    
+    
     override init() {
         super.init()
         setupConfiguration()
@@ -22,8 +28,8 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     private func setupConfiguration() {
         arConfiguration.isLightEstimationEnabled = true
         arConfiguration.worldAlignment = .gravityAndHeading
+        arConfiguration.planeDetection = [.horizontal, .vertical]
         arConfiguration.environmentTexturing = .automatic
-
     }
     
     func configureARSession(for arView: ARSCNView) {
@@ -34,10 +40,12 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         arView.session.run(arConfiguration)
     }
     
-    // ARView가 로드되거나, 뷰가 처음 나타날 때 다음 코드를 호출하세요.
     func startARSession() {
-        configureARSession(for: arView)               // 1. setup AR session
-        addInitialWorldAnchor()                      // 2. initialize (0,0,0) World Anchor
+        configureARSession(for: arView)        // 1. AR 세션 설정
+        addInitialWorldAnchor()               // 2. 초기 월드 앵커 추가
+        addNextNode()                         // 3. 첫 번째 노드 추가
+        
+        
     }
     
     func addInitialWorldAnchor() {
@@ -47,175 +55,201 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         arView.session.add(anchor: worldAnchor)
         print("World anchor added at (0, 0, 0)")
     }
-
     
-    func session(_ session: ARSession, didFailWithError error: Error) {
-        print("ARSesssion failed with error: \(error.localizedDescription)")
+    //  convert virtual 2D coordinate into AR3D coordinates
+    func convertVirtual2DToAR3D(x: Float, y: Float) -> SCNVector3 {
+        let scaleFactor: Float = 1.0  // 가상 좌표계 단위당 ARKit의 단위 (미터)
+        
+        // 회전 변환 (필요에 따라 적용)
+        let angle = Float.pi / 2  // 90도 회전 예시
+        let rotatedX = x * cos(angle) - y * sin(angle)
+        let rotatedY = x * sin(angle) + y * cos(angle)
+        
+        // 이동 변환 (원점 맞춤)
+        let originOffset = SCNVector3(0, 0, 0)  // 필요에 따라 설정
+        
+        // 최종 변환된 좌표
+        let arX = rotatedX * scaleFactor + originOffset.x
+        let arY = 0.0 + originOffset.y  // 평면 상에 있으므로 y값은 0
+        let arZ = rotatedY * scaleFactor + originOffset.z
+        
+        return SCNVector3(arX, arY, arZ)
     }
     
-    func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        updateArrowNodePosition() // update ArrowNode's poision per frame
-        updateNodeScales()
-    }
-    
-    func sessionWasInterrupted(_ session: ARSession) {
-        print("ARSesssion was interrupted")
-    }
-    
-    func sessionInterruptionEnded(_ session: ARSession) {
-        print("ARSesssion interruption ended and Restarted")
-        session.run(session.configuration!, options: [.resetTracking, .removeExistingAnchors])
-    }
-    
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        if anchor.transform == matrix_identity_float4x4 {
-            addNodesWithOffset(anchorNode: node)
+    func addNextNode() {
+        if currentNode != nil {
+            currentNode?.removeFromParentNode() // remove previous node
         }
-        if anchor.name == "dotAnchor" {
-            let dotNode = createDotNode(with: anchor)
-            node.addChildNode(dotNode)
-        }
-    }
-
-    func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
-        guard let currentFrame = arView?.session.currentFrame else { return }
         
-    }
-
-    func createDotNode(with anchor: ARAnchor) -> SCNNode {
-        let dot = SCNSphere(radius: 0.2)
-        let material = SCNMaterial()
-        material.diffuse.contents = UIColor.systemBlue
-        dot.materials = [material]
-        
-        let dotNode = SCNNode(geometry: dot)
-        dotNode.position = SCNVector3(anchor.transform.columns.3.x, anchor.transform.columns.3.y, anchor.transform.columns.3.z)
-        
-        return dotNode
-    }
-    
-    func convertCoordinates(x: Float, y: Float, z: Float) -> (Float, Float, Float) {
-        let scaleFactor: Float = 0.01
-        let x_adjusted: Float = x * scaleFactor
-        let y_adjusted: Float = z * scaleFactor - 1
-        let z_adjusted: Float = -y * scaleFactor
-        return (x_adjusted, y_adjusted, z_adjusted)
-    }
-    
-    func addNodesWithOffset(anchorNode: SCNNode) {
-        let firstNode = mapNodes.first(where: { $0.name == pathList.first})
-        
-        let startPosition = SCNVector3(firstNode!.x, firstNode!.z, firstNode!.y)
-
-        for listedNode in pathList {
-            if listedNode == firstNode!.name { continue }
-            
-            if let nodeData = mapNodes.first(where: { $0.name == listedNode }) {
-                let nodePosition = SCNVector3(nodeData.x, nodeData.z, nodeData.y)
-                
-                let relativePosition = SCNVector3(
-                    nodePosition.x - startPosition.x,
-                    nodePosition.y - startPosition.y,
-                    (nodePosition.z - startPosition.z) * -1
-                )
+        if currentNodeIndex < pathList.count {
+            let nodeName = pathList[currentNodeIndex]
+            if let nodeData = mapNodes.first(where: { $0.name == nodeName }) {
+                let nodePosition = convertVirtual2DToAR3D(x: nodeData.x, y: nodeData.y)
                 
                 let node = SCNNode()
-                node.position = relativePosition
+                node.position = nodePosition
                 
-                let sphere = SCNSphere(radius: 1)
+                // 노드 모양과 색상 설정
+                let sphere = SCNSphere(radius: 0.1)
                 sphere.firstMaterial?.diffuse.contents = UIColor.blue
                 node.geometry = sphere
                 node.name = nodeData.name
-                dotNodes.append(node)
-                anchorNode.addChildNode(node)
-                print("node Added: \(relativePosition)")
+                
+                // add node to the Scene
+                arView.scene.rootNode.addChildNode(node)
+                currentNode = node
+                print("Node added: \(node.name ?? "") at position \(node.position)")
             } else {
-                print("addNodeWithOffset: \(listedNode) not found.")
+                print("Node \(nodeName) not found in mapNodes.")
             }
+        } else {
+            print("Arrived at the end of the path.")
         }
     }
     
-    func updateNodeScales(){
+    // check if the user is closed enough to the node
+    func checkNodeProximity() {
+        guard let currentNode = currentNode else { return }
         guard let currentFrame = arView?.session.currentFrame else { return }
+        
         let cameraPosition = SCNVector3(
             currentFrame.camera.transform.columns.3.x,
             currentFrame.camera.transform.columns.3.y,
             currentFrame.camera.transform.columns.3.z
         )
-            
-        for node in dotNodes{
-            let distance = cameraPosition.distance(to: node.position)
-            
-            // 거리에 비례한 스케일 설정 (너무 커지지 않도록 조정 가능)
-            let scaleFactor = max(0.1, 2.0 / distance)
-            node.scale = SCNVector3(scaleFactor, scaleFactor, scaleFactor)
+        
+        let nodePosition = currentNode.worldPosition
+        
+        let distance = cameraPosition.distance(to: nodePosition)
+        //updateDistanceText(distance: distance)
+        // 특정 거리(예: 0.5미터) 이하로 가까워지면 다음 노드로 업데이트
+        if distance < 0.5 {
+            currentNodeIndex += 1
+            addNextNode()
+        }
+    }
+    
+    func displayTextInFrontOfUser(text: String) {
+        // 1. 텍스트 지오메트리 생성
+        let textGeometry = SCNText(string: text, extrusionDepth: 0.01)
+        textGeometry.firstMaterial?.diffuse.contents = UIColor.white
+        textGeometry.font = UIFont.systemFont(ofSize: 1)
+        textGeometry.alignmentMode = CATextLayerAlignmentMode.center.rawValue
+        textGeometry.truncationMode = CATextLayerTruncationMode.none.rawValue
+        textGeometry.isWrapped = true
+        textGeometry.flatness = 0.1
+
+        // 2. 텍스트 노드 생성 및 스케일 조정
+        let textNode = SCNNode(geometry: textGeometry)
+        textNode.scale = SCNVector3(0.1, 0.1, 0.1)
+
+        // 3. 카메라 노드 가져오기
+        guard let cameraNode = arView.pointOfView else { return }
+
+        // 4. 텍스트 노드를 카메라 앞에 배치
+        var translation = matrix_identity_float4x4
+        translation.columns.3.z = -10  // 원하는 거리로 조정 가능
+        translation.columns.3.y = -5
+        
+        let textNodeTransform = simd_mul(cameraNode.simdTransform, translation)
+        textNode.simdTransform = textNodeTransform
+
+        // 5. 텍스트 노드가 항상 카메라를 바라보도록 설정
+        let billboardConstraint = SCNBillboardConstraint()
+        billboardConstraint.freeAxes = .all
+        textNode.constraints = [billboardConstraint]
+        print("Text Node Position: \(textNode.position)")
+        // 6. 씬에 텍스트 노드 추가
+        arView.scene.rootNode.addChildNode(textNode)
+        print("textnode added")
+    }
+
+
+    func updateDistanceText(distance: Float) {
+        //guard let distance = getDistanceToNextNode() else { return }
+
+        // 거리를 미터 단위로 표시, 소수점 두 자리까지
+        let distanceText = String(format: "%.2f m", distance)
+
+        // 기존 텍스트 노드 제거
+        //distanceTextNode?.removeFromParentNode()
+
+        // SCNText 생성
+        let textGeometry = SCNText(string: distanceText, extrusionDepth: 0.1)
+        textGeometry.firstMaterial?.diffuse.contents = UIColor.white
+        textGeometry.font = UIFont.systemFont(ofSize: 1)
+        textGeometry.flatness = 0.1
+
+        // 텍스트 노드 생성
+        let textNode = SCNNode(geometry: textGeometry)
+
+        // 텍스트 노드의 스케일 조정 (너무 크게 나타나지 않도록)
+        let scale: Float = 1
+        textNode.scale = SCNVector3(scale, scale, scale)
+
+        // 카메라 앞에 배치
+        if let cameraNode = arView.pointOfView {
+            // 텍스트를 카메라 앞 0.5미터 지점에 위치
+            var translation = matrix_identity_float4x4
+            translation.columns.3.z = -0.3
+            let textNodeTransform = simd_mul(cameraNode.simdTransform, translation)
+            textNode.simdTransform = textNodeTransform
+
+            // 텍스트가 항상 카메라를 바라보도록 회전 설정
+            let billboardConstraint = SCNBillboardConstraint()
+            billboardConstraint.freeAxes = .all
+            textNode.constraints = [billboardConstraint]
+            //print(distance)
+            // 씬에 텍스트 노드 추가
+            arView.scene.rootNode.addChildNode(textNode)
+            //distanceTextNode = textNode
         }
     }
 
-    func createArrowNode() -> SCNNode {
-        let shaft = SCNCylinder(radius: 0.03, height: 0.2)
-        shaft.firstMaterial?.diffuse.contents = UIColor.red
-        let shaftNode = SCNNode(geometry: shaft)
-        shaftNode.position = SCNVector3(0, 0, 0)
-
-        let head = SCNCone(topRadius: 0.0, bottomRadius: 0.08, height: 0.15)
-        head.firstMaterial?.diffuse.contents = UIColor.red
-        let headNode = SCNNode(geometry: head)
-        headNode.position = SCNVector3(0, 0.1, 0)
-
-        let arrowNode = SCNNode()
-        arrowNode.addChildNode(shaftNode)
-        arrowNode.addChildNode(headNode)
-        
-        
-        
-        arrowNode.name = "arrowNode"
-        
-        return arrowNode
+    
+    // ARSessionDelegate method
+    func session(_ session: ARSession, didFailWithError error: Error) {
+        print("ARSession failed with error: \(error.localizedDescription)")
     }
     
-    func updateArrowNodePosition() {
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        //updateNodeScales()
+        checkNodeProximity()
+    }
+    
+    func sessionWasInterrupted(_ session: ARSession) {
+        print("ARSession was interrupted")
+    }
+    
+    func sessionInterruptionEnded(_ session: ARSession) {
+        print("ARSession interruption ended and restarted")
+        session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
+    }
+    
+    // 노드의 스케일을 거리와 비례하여 조정하는 함수
+    func updateNodeScales(){
+        guard let currentNode = currentNode else { return }
         guard let currentFrame = arView?.session.currentFrame else { return }
-        if dotNodes.isEmpty == false {
-            let firstNodePosition = dotNodes[1].position
-            
-            let cameraPosition = SCNVector3(
-                currentFrame.camera.transform.columns.3.x,
-                currentFrame.camera.transform.columns.3.y,
-                currentFrame.camera.transform.columns.3.z
-            )
-            
-            // 카메라에서 목표 위치까지의 방향 벡터 계산
-            let dx = firstNodePosition.x - cameraPosition.x
-            
-            let dz = firstNodePosition.z - cameraPosition.z
-            
-            // 각도 계산 (atan2 사용)
-            let yaw = atan2(dz, dx)
-            
-            let cameraTransform = currentFrame.camera.transform
-            var translation = matrix_identity_float4x4
-            translation.columns.3.z = -1.0
-            translation.columns.3.x = 0.5
         
-            if let arrowNode = arrowNode {
-                arrowNode.simdTransform = simd_mul(cameraTransform, translation)
-                //arrowNode.eulerAngles = SCNVector3(0, 0, 0)
-                //arrowNode.look(at: SCNVector3(100, 0, 50))
-
-            } else {
-                let newArrowNode = createArrowNode()
-                arView.scene.rootNode.addChildNode(newArrowNode)
-                arrowNode = newArrowNode
-                print("arrowNode created and added")
-            }
-        } else { return }
+        let cameraPosition = SCNVector3(
+            currentFrame.camera.transform.columns.3.x,
+            currentFrame.camera.transform.columns.3.y,
+            currentFrame.camera.transform.columns.3.z
+        )
         
+        let nodePosition = currentNode.worldPosition
         
+        let distance = cameraPosition.distance(to: nodePosition)
+        
+        // 거리에 비례한 스케일 설정 (너무 작거나 커지지 않도록 제한)
+        let minScale: Float = 0.05
+        let maxScale: Float = 0.3
+        let scaleFactor = max(minScale, min(maxScale, 1.0 / distance))
+        currentNode.scale = SCNVector3(scaleFactor, scaleFactor, scaleFactor)
     }
-    
 }
 
+// SCNVector3 확장: 거리 계산을 위한 함수
 extension SCNVector3 {
     func distance(to vector: SCNVector3) -> Float {
         let dx = self.x - vector.x

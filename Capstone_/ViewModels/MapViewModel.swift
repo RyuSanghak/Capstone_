@@ -130,7 +130,7 @@ class MapViewModel: ObservableObject {
 
             // set the position and scale for mapNode
             mapNode.position = SCNVector3(0, 0, 0)
-            mapNode.scale = SCNVector3(0.01, 0.01, 0.01) // 1/100 scale
+            //mapNode.scale = SCNVector3(0.01, 0.01, 0.01) // 1/100 scale
             //mapNode.scale = SCNVector3(1, 1, 1)
             // set name of mapNode
             mapNode.name = selectedMap?.name

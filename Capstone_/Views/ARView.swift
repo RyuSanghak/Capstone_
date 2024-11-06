@@ -8,9 +8,8 @@ struct ARView: View {
         VStack {
             ARViewContainer(viewModel: viewModel)
                 .edgesIgnoringSafeArea(.all)
-            /*
             Button(action: {
-                viewModel.setInitialPosition()
+                viewModel.displayTextInFrontOfUser(text: "Hello")
             }) {
                 Text("set initial position")
                     .padding()
@@ -18,21 +17,6 @@ struct ARView: View {
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            Button(action: {
-                viewModel.calculateDistance()
-            }) {
-                Text("check distance")
-                    .padding()
-                    .background(Color.black)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .onAppear(){
-                findPath()
-            }
-            //.padding(.bottom, 50)
-
-            */
         }
         .onAppear(){
             viewModel.startARSession()

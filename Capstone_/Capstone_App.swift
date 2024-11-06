@@ -9,7 +9,7 @@ struct Capstone_App: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CampusNavigatorView()
                 .environmentObject(mapViewModel)
                 .environmentObject(arViewModel)
         }
