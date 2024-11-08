@@ -99,26 +99,26 @@ func findPath(buildingName: String, start: String, end: String) {
 
     myGraph.add(nodeList)
     
-    for edge in selectedEdges {
-        if let fromNode = nodeList.first(where: { $0.name == edge.from }) {
-            if let toNode = nodeList.first(where: { $0.name == edge.to }) {
-                let baseWeight = euclideanDistance(pointA: fromNode, pointB: toNode)
-                
-                let weight: Float
-                if fromNode.z != toNode.z {
-                    weight = baseWeight * 30
-                } else {
-                    weight = baseWeight
-                }
-                
-                fromNode.addConnection(to: toNode, weight: weight)
-            } else {
-                print("Couldn't find node \(edge.to)")
-            }
-        } else {
-             print("Couldn't find node \(edge.from)")
-        }
-    }
+//    for edge in selectedEdges {
+//        if let fromNode = nodeList.first(where: { $0.name == edge.from }) {
+//            if let toNode = nodeList.first(where: { $0.name == edge.to }) {
+//                let baseWeight = euclideanDistance(pointA: fromNode, pointB: toNode)
+//                
+//                let weight: Float
+//                if fromNode.z != toNode.z {
+//                    weight = baseWeight * 30
+//                } else {
+//                    weight = baseWeight
+//                }
+//                
+//                fromNode.addConnection(to: toNode, weight: weight)
+//            } else {
+//                print("Couldn't find node \(edge.to)")
+//            }
+//        } else {
+//             print("Couldn't find node \(edge.from)")
+//        }
+//    }
     
     let path = myGraph.findPath(from: (nodeList.first (where: { $0.name == start }))!, to: (nodeList.first (where: { $0.name == end }))!)
     
