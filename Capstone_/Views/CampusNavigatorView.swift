@@ -105,7 +105,6 @@ struct CampusNavigatorView: View {
                 
             }
             .onAppear(){
-                findPath(buildingName: "mapNodes", start: startRoom ?? "Room 1030", end: endRoom ?? "Room 1400K")
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     withAnimation(.easeInOut(duration: 1)) {
                         isSplashActive = true

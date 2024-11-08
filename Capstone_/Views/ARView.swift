@@ -9,7 +9,7 @@ struct ARView: View {
             ARViewContainer(viewModel: viewModel)
                 .edgesIgnoringSafeArea(.all)
             Button(action: {
-                viewModel.displayTextInFrontOfUser(text: "Hello")
+                viewModel.startPathFinding()
             }) {
                 Text("set initial position")
                     .padding()

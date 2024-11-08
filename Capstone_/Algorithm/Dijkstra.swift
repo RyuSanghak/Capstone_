@@ -64,8 +64,8 @@ func findPath(buildingName: String, start: String, end: String) {
     
     var nodeList: [MyNode] = []
     
-    for node in mapNodes{
-        nodeList.append(MyNode(name: node.name,x: node.x, y: node.y, z: node.z))
+    for node in mapNodes {
+        nodeList.append(MyNode(name: node.name, x: node.x, y: node.y, z: node.z))
     }
 
     myGraph.add(nodeList)
@@ -73,26 +73,34 @@ func findPath(buildingName: String, start: String, end: String) {
     for edge in connectNodes {
         if let fromNode = nodeList.first(where: { $0.name == edge.from }) {
             if let toNode = nodeList.first(where: { $0.name == edge.to }) {
-                fromNode.addConnection(to: toNode, weight: euclideanDistance(pointA: fromNode, pointB: toNode))
+                let baseWeight = euclideanDistance(pointA: fromNode, pointB: toNode)
+                
+                let weight: Float
+                if fromNode.z != toNode.z {
+                    weight = baseWeight * 30
+                } else {
+                    weight = baseWeight
+                }
+                
+                fromNode.addConnection(to: toNode, weight: weight)
+            } else {
+                print("Couldn't find node \(edge.to)")
             }
-            else {
-                print("couldn't find node \(edge.to)")
-            }
-        }
-        else {
+        } else {
              print("Couldn't find node \(edge.from)")
         }
     }
-    let path = myGraph.findPath(from: (nodeList.first (where: { $0.name == start }))!, to: (nodeList.first (where: { $0.name == end }))!)
+    
+    let path = myGraph.findPath(from: (nodeList.first(where: { $0.name == start }))!, to: (nodeList.first(where: { $0.name == end }))!)
     
     printPath(path)
     printCost(for: path)
     
-    path.compactMap({ $0 as? MyNode}).forEach { node in  // make path list as String
+    path.compactMap({ $0 as? MyNode }).forEach { node in
         pathList.append(node.name)
     }
     
-    print("path: \(pathList)")
+    print("Path: \(pathList)")
 
 
     func euclideanDistance(pointA: MyNode, pointB: MyNode) -> Float {
