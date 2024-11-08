@@ -1,7 +1,41 @@
 
 import SceneKit
 
-let mapNodes: [nodes] = [
+import SwiftUI
+
+
+
+/*
+ 
+struct NodeView: View {
+    // 동일한 viewModel을 공유
+    @EnvironmentObject var viewModel: CampusNavigatorViewModel
+
+    
+    func removeWhitespacesFromString(mStr: String) -> String {
+
+        let filteredChar = mStr.filter { !$0.isWhitespace }
+        return String(filteredChar)
+    }
+    
+    var body: some View {
+        VStack {
+            if let selectedBuilding = viewModel.selectedBuilding {
+                Text("Selected Building: \(selectedBuilding)")
+            } else {
+                Text("No building selected.")
+            }
+        }
+    }
+}
+ */
+
+
+//mapNodes
+
+
+
+let FHnodes: [nodes] = [
     nodes(name: "Restroom 1020", x: 6.347, y: -0.383, z: 0.2),
     nodes(name: "Room 1030", x: 4.444, y: 1.549, z: 0.2),
     nodes(name: "Room 1040", x: 4.42, y: 1.806, z: 0.2),
@@ -270,3 +304,11 @@ let mapNodes: [nodes] = [
     nodes(name: "f2n40", x: 2.923, y: -2.117, z: 0.21)
 ]
 
+
+let TestNodes: [nodes] = [
+    nodes(name: "Restroom 1020", x: 6.347, y: -0.383, z: 0.2),
+    nodes(name: "Room 1030", x: 4.444, y: 1.549, z: 0.2),
+    nodes(name: "Room 1040", x: 4.42, y: 1.806, z: 0.2),
+    nodes(name: "Room 1050", x: 4.233, y: 1.972, z: 0.2),
+    nodes(name: "Room 1060", x: 3.808, y: 0.485, z: 0.2)
+    ]

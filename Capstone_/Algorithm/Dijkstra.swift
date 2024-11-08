@@ -64,13 +64,42 @@ func findPath(buildingName: String, start: String, end: String) {
     
     var nodeList: [MyNode] = []
     
-    for node in mapNodes {
-        nodeList.append(MyNode(name: node.name, x: node.x, y: node.y, z: node.z))
+
+    //빌딩별로 데이터 셋업
+    var selectedNodes: [nodes] {
+        switch buildingName {
+        case "Memorial Field House":
+            return FHnodes
+        case "Rocket Hall":
+            return TestNodes
+        case "Nitschke Hall":
+            return TestNodes
+        default:
+            return []
+        }
+    }
+    
+    
+    var selectedEdges: [edges] {
+        switch buildingName {
+        case "Memorial Field House":
+            return FHedges
+        case "Rocket Hall":
+            return TestconnectNodes
+        case "Nitschke Hall":
+            return TestconnectNodes
+        default:
+            return []
+        }
+    }
+    
+    for node in selectedNodes{
+        nodeList.append(MyNode(name: node.name,x: node.x, y: node.y, z: node.z))
     }
 
     myGraph.add(nodeList)
     
-    for edge in connectNodes {
+    for edge in selectedEdges {
         if let fromNode = nodeList.first(where: { $0.name == edge.from }) {
             if let toNode = nodeList.first(where: { $0.name == edge.to }) {
                 let baseWeight = euclideanDistance(pointA: fromNode, pointB: toNode)
@@ -91,7 +120,7 @@ func findPath(buildingName: String, start: String, end: String) {
         }
     }
     
-    let path = myGraph.findPath(from: (nodeList.first(where: { $0.name == start }))!, to: (nodeList.first(where: { $0.name == end }))!)
+    let path = myGraph.findPath(from: (nodeList.first (where: { $0.name == start }))!, to: (nodeList.first (where: { $0.name == end }))!)
     
     printPath(path)
     printCost(for: path)
@@ -100,7 +129,9 @@ func findPath(buildingName: String, start: String, end: String) {
         pathList.append(node.name)
     }
     
-    print("Path: \(pathList)")
+    print("path: \(pathList)")
+    //print building name
+    print(buildingName, ", printing in Dijkstra")
 
 
     func euclideanDistance(pointA: MyNode, pointB: MyNode) -> Float {
