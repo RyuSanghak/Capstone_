@@ -1,71 +1,81 @@
-//
-//  CampusNavigatorView.swift
-//  Capstone_
-//
-//  Created by Sanghak Ryu on 9/26/24.
-//
-
 import SwiftUI
 
 struct CampusNavigatorView: View {
-    
-    @State private var selectedCampus : String? = "MainCampus"
-    @State private var selectedBuilding: String?
-    @State private var selectedRoom: String?
-
-
-    
-    var filteredBuildings: [String] {
-        switch selectedCampus {
-        case "HealthScience":
-            return healthScienceBuildings
-        case "Engineering":
-            return engineeringBuildings
-        case "MainCampus":
-            return mainCampusBuildings
-        default:
-            return []
-        }
-    }
-    
-    var filteredRooms: [String] {
-        switch selectedBuilding {
-        case "Memorial Field House":
-            return FH1F
-        case "Engineering":
-            return engineeringBuildings
-        case "MainCampus":
-            return mainCampusBuildings
-        default:
-            return ["hi"]
-        }
-    }
+    @EnvironmentObject var viewModel: CampusNavigatorViewModel
+    @EnvironmentObject var mapViewModel: MapViewModel
+    @EnvironmentObject var arViewModel: ARViewModel
     
     
     var body: some View {
-        VStack(spacing: 16){
-            DropDownView(title: "Campus",
-                         prompt: "Select",
-                         options: campus,
-                         maxHeight: 140,
-                         selection: $selectedCampus)
-                                
-            DropDownView(title: "Buildings",
-                         prompt: "Select",
-                         options: filteredBuildings,
-                         maxHeight: 200,
-                         selection: $selectedBuilding)
-            
-            DropDownView(title: "Rooms",
-                         prompt: "Select",
-                         options: filteredRooms,
-                         maxHeight: 200,
-                         selection: $selectedRoom)
+        NavigationView {
+            VStack(spacing: 16) {
+                if viewModel.isSplashActive {
+                    
+                    DropDownView(
+                        title: "Campus",
+                        prompt: "Select",
+                        options: campus,
+                        maxHeight: 140,
+                        selection: $viewModel.selectedCampus
+                    )
+                    
+                    DropDownView(
+                        title: "Buildings",
+                        prompt: "Select",
+                        options: viewModel.filteredBuildings,
+                        maxHeight: 200,
+                        selection: $viewModel.selectedBuilding
+                    )
+                    
+                    DropDownView(
+                        title: "Start Rooms",
+                        prompt: "Select",
+                        options: viewModel.startRooms,
+                        maxHeight: 200,
+                        selection: $viewModel.startInput
+                    )
+                    
+                    DropDownView(
+                        title: "End Rooms",
+                        prompt: "Select",
+                        options: viewModel.endRooms,
+                        maxHeight: 200,
+                        selection: $viewModel.endInput
+                    )
+                    
+                    NavigationLink(destination: ContentView()) {
+                        Text("Next")
+                            .padding()
+                            .background(.regularMaterial)
+                            .colorScheme(.dark)
+                            .cornerRadius(12)
+                            .font(.largeTitle.bold())
+                            .foregroundColor(.primary)
+                    }
+                    .environmentObject(mapViewModel)
+                    .environmentObject(arViewModel)
+                    .simultaneousGesture(TapGesture().onEnded {
+                        // Ensure non-optional values are passed to findPath
+                        guard let startInput = viewModel.startInput, let endInput = viewModel.endInput, let selectedBuilding = viewModel.selectedBuilding else {
+                            print("Start or End input is missing")
+
+                            return
+                        }
+                        
+                        
+                        findPath(buildingName: selectedBuilding, start: startInput, end: endInput)
+                 
+                    })
+                } else {
+                    SplashView()
+                }
+            }
+            .onAppear {
+                viewModel.activateSplash()
+            }
         }
     }
-
 }
 
-#Preview {
-    CampusNavigatorView()
-}
+    
+    
