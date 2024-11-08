@@ -6,6 +6,8 @@ import simd
 class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDelegate, CLLocationManagerDelegate {
     
     @IBOutlet var arView: ARSCNView!
+
+    var campNaviViewModel: CampusNavigatorViewModel
     
     @Published var arConfiguration: ARWorldTrackingConfiguration = ARWorldTrackingConfiguration()
     
@@ -21,7 +23,8 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     
     let globalRotationDegrees: Float = 100.0
     
-    override init() {
+    init(campusNavigatorViewModel: CampusNavigatorViewModel) {
+        self.campNaviViewModel = campusNavigatorViewModel
         super.init()
         setupConfiguration()
     }
@@ -54,11 +57,26 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     }
     
     func makeScaleUpNodeList() {
-        for node in mapNodes {
+        
+        for node in FHnodes {
             let arNode = nodes(name: node.name, x: scaleFactor * node.x, y: scaleFactor * node.y, z: scaleFactor * node.z)
             arMapNodes.append(arNode)
         }
         
+    }
+    
+    func callNodesData() -> String {
+        let buildingName = campNaviViewModel.selectedBuilding
+        switch buildingName {
+        case "Memorial Field House":
+            return "FHnodes"
+        case "Rocket Hall":
+            return "TestNodes"
+        case "Nitschke Hall":
+            return "TestNodes"
+        default:
+            return "[]"
+        }
     }
     
     func addInitialWorldAnchor() {
@@ -137,63 +155,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     func manageNodeVisibility() {
         for pathNodeName in pathList {
             
-        }
-    }
-    
-    func addNextNode() {
-        if currentNode != nil {
-            currentNode?.removeFromParentNode()
-        }
-        
-        if currentNodeIndex < pathList.count {
-            let nodeName = pathList[currentNodeIndex]
-            if let nodeData = mapNodes.first(where: { $0.name == nodeName }) {
-                
-                // 첫 번째 노드인 경우
-                if currentNodeIndex == 0 {
-                    initialNode = nodeData
-                    // 첫 번째 노드를 원점(0,0,0)에 배치
-                    let nodePosition = SCNVector3(0, 0, 0)
-                    //initialNodePosition = nodePosition  // 필요하다면 저장
-                    
-                    let node = SCNNode()
-                    node.position = nodePosition
-                    let sphere = SCNSphere(radius: 0.11)
-                    sphere.firstMaterial?.diffuse.contents = UIColor.blue
-                    node.geometry = sphere
-                    node.name = nodeData.name
-                    
-                    arView.scene.rootNode.addChildNode(node)
-                    currentNodeIndex += 1
-                    print("First node added at user's position")
-                } else {
-                    // 다른 노드인 경우, 첫 번째 노드에 상대적인 위치 계산
-                    let previousNodePosition = currentNode?.position ?? SCNVector3(0, 0, 0)
-                    let offset = convertVirtual2DToAR3D(x: nodeData.x, y: nodeData.y)
-                    let nodePosition = SCNVector3(
-                        -initialNode!.x + offset.x,
-                         -initialNode!.y + offset.y,
-                         -initialNode!.z + offset.z
-                    )
-                    print("offset: ")
-                    
-                    let node = SCNNode()
-                    node.position = nodePosition
-                    let sphere = SCNSphere(radius: 0.11)
-                    sphere.firstMaterial?.diffuse.contents = UIColor.blue
-                    node.geometry = sphere
-                    node.name = nodeData.name
-                    arView.scene.rootNode.addChildNode(node)
-                    currentNode = node
-                    currentNodeIndex += 1
-                    print("Node added: \(node.name ?? "") at position \(node.position)")
-                }
-                
-            } else {
-                print("Node \(nodeName) not found in mapNodes.")
-            }
-        } else {
-            print("Arrived at the end of the path.")
         }
     }
 
@@ -292,7 +253,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         
         if distance < 0.5 {
             currentNodeIndex += 1
-            addNextNode()
         }
     }
 

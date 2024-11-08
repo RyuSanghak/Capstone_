@@ -1,7 +1,10 @@
 import Foundation
     
     
-let connectNodes: [edges] = [
+
+
+
+let FHedges: [edges] = [
     edges(from: "f1n1", to: "Stair C1010a"),
     edges(from: "f1n1", to: "Stair C1010b"),
     edges(from: "f1n1", to: "f1n41"),
@@ -59,7 +62,6 @@ let connectNodes: [edges] = [
     edges(from: "f1n14", to: "Room 1250"),
     edges(from: "f1n14", to: "Room 1260"),
     edges(from: "f1n14", to: "Room 1270"),
-    edges(from: "f1n14", to: "f1n15"),
     edges(from: "f1n14", to: "f1n19"),
     edges(from: "f1n14", to: "f1n20"),
     edges(from: "f1n14", to: "Elevator C2019"),
@@ -380,3 +382,65 @@ let connectNodes: [edges] = [
     edges(from: "Room 2320", to: "Room 2310"),
     edges(from: "Room 2880", to: "Stair C2017"),
 ]
+
+let TestconnectNodes: [edges] = [
+    edges(from: "f1n1", to: "Stair C1010a"),
+    edges(from: "f1n1", to: "Stair C1010b"),
+    edges(from: "f1n1", to: "f1n41"),
+    edges(from: "f1n1", to: "f1n2"),
+    edges(from: "f1n2", to: "Room 1140")
+    ]
+
+
+//func testing() {
+//    for edge in connectNodes{
+//        var x1: Double? = nil
+//        var y1: Double? = nil
+//        var x2: Double? = nil
+//        var y2: Double? = nil
+//
+//        for node in mapNodes {
+//            if node.name == edge.from {
+//                x1 = node.x
+//                y1 = node.y
+//                print("Node \(node.name): \(x1!), \(y1!)")
+//            } else if node.name == edge.to {
+//                x2 = node.x
+//                y2 = node.y
+//                print("Node \(node.name): \(x2!), \(y2!)")
+//            }
+//        }
+//
+//        // Ensure both nodes were found before calculating the distance
+//        if let x1 = x1, let y1 = y1, let x2 = x2, let y2 = y2 {
+//            let distance = sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2))
+//            print("Distance: \(distance)")
+//        } else {
+//            print("One or both nodes not found.")
+//        }
+//    }
+//}
+//
+//
+//
+//
+//
+//struct testView: View {
+//    var body: some View {
+//        VStack {
+//            Text("Calculating Distance...")
+//                .onAppear {
+//                    // Call the function when the view appears with the first edgec
+//                    testing()
+//                }
+//        }
+//        .padding()
+//    }
+//}
+//
+//#Preview {
+//    testView()
+//}
+
+
+
