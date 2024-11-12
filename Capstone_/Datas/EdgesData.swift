@@ -161,6 +161,7 @@ let FHedges: [edges] = [
     edges(from: "f1n38", to: "Room 1350"),
     edges(from: "f1n38", to: "f1n39"),
     edges(from: "f1n39", to: "f1n40"),
+    edges(from: "f1n39", to: "Room 1350"),
     edges(from: "f1n39", to: "1300c"),
     edges(from: "f1n40", to: "Room 1350"),
     edges(from: "f1n40", to: "Room 1310"),

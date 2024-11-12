@@ -10,7 +10,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     var campNaviViewModel: CampusNavigatorViewModel
     
     @Published var arConfiguration: ARWorldTrackingConfiguration = ARWorldTrackingConfiguration()
-    
+    //@Published var arConfiguration: ARConfiguration = AROrientationTrackingConfiguration()
     var currentNodeIndex: Int = 0  // 현재 노드의 인덱스
     var currentNode: SCNNode?      // 현재 표시되는 노드
     var initialNode: nodes?
@@ -19,6 +19,9 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     var lineNode: SCNNode?
     var scaleFactor: Float = 5.623
     var arMapNodes: [nodes] = []
+    var userPathNodeList: [SCNNode] = []
+    
+    var detectedWalls: [ARPlaneAnchor] = []
     
     
     let globalRotationDegrees: Float = 100.0
@@ -32,7 +35,8 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     private func setupConfiguration() {
         arConfiguration.isLightEstimationEnabled = true
         arConfiguration.worldAlignment = .gravityAndHeading
-        //arConfiguration.planeDetection = [.horizontal, .vertical]
+        arConfiguration.planeDetection = [.horizontal, .vertical]
+        arConfiguration.environmentTexturing = .automatic
 
     }
     
@@ -41,17 +45,40 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         arView.delegate = self
         arView.session.delegate = self
         arView.scene = SCNScene()
+        
+        arView.debugOptions = [
+            ARSCNDebugOptions.showFeaturePoints,
+            ARSCNDebugOptions.showWorldOrigin,
+            ARSCNDebugOptions.showPhysicsShapes
+        ]
+        
+        let coachingOverlay = ARCoachingOverlayView()
+        coachingOverlay.session = arView.session
+        coachingOverlay.goal = .tracking
+        coachingOverlay.activatesAutomatically = true
+        coachingOverlay.translatesAutoresizingMaskIntoConstraints = false
+        arView.addSubview(coachingOverlay)
+        
+        // 제약 조건 설정
+        NSLayoutConstraint.activate([
+            coachingOverlay.leadingAnchor.constraint(equalTo: arView.leadingAnchor),
+            coachingOverlay.trailingAnchor.constraint(equalTo: arView.trailingAnchor),
+            coachingOverlay.topAnchor.constraint(equalTo: arView.topAnchor),
+            coachingOverlay.bottomAnchor.constraint(equalTo: arView.bottomAnchor)
+        ])
         arView.session.run(arConfiguration)
+        
     }
     
     func startARSession() {
         configureARSession(for: arView)        // setup AR Session
-        addInitialWorldAnchor()
+        //addInitialWorldAnchor()
         makeScaleUpNodeList()                  // create UP scale node list: arMapNodes
     }
     
     func startPathFinding() {
-        self.initialNode = arMapNodes.first(where: { $0.name == pathList.first})
+        addInitialWorldAnchor()
+        self.initialNode = arMapNodes.first(where: { $0.name == pathList.first}) // set the first pathList node as a initial node.
         addAllPathNode()
         
     }
@@ -126,36 +153,61 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     func addAllPathNode() {
         guard let initialNode = initialNode else { print("Couldn't find initial node"); return }
         
+        // 부모 노드 생성
+        let parentNode = SCNNode()
+        parentNode.name = "PathNodesParent"
+        
+        // 부모 노드의 앵커 생성 및 추가
+        let parentTransform = parentNode.simdWorldTransform
+        let anchor = ARAnchor(name: parentNode.name ?? "ParentNode", transform: parentTransform)
+        arView.session.add(anchor: anchor)
+        
         for pathNodeName in pathList {
             if let pathNodeData = arMapNodes.first(where: { $0.name == pathNodeName }) {
                 let relativeX = pathNodeData.x - initialNode.x
                 let relativeY = 0.0
                 let relativeZ = -(pathNodeData.y - initialNode.y)
                 
+                // 자식 노드 생성
                 let node = SCNNode()
                 node.name = pathNodeData.name
                 node.position = SCNVector3(relativeX, Float(relativeY), relativeZ)
-                node.position.y = 0.1
+                node.position.y = 0.0
                 
                 let sphere = SCNSphere(radius: 0.1)
                 sphere.firstMaterial?.diffuse.contents = UIColor.blue
                 node.geometry = sphere
-                node.isHidden = false
+                node.isHidden = true
                 
-                if pathNodeData.name == "f1n19" {
+                // 자식 노드를 부모 노드에 추가
+                parentNode.addChildNode(node)
+                
+                userPathNodeList.append(node)
+                
+                if node.name == initialNode.name {
                     currentNode = node
                 }
-                arView.scene.rootNode.addChildNode(node)
-                print(node.position)
             }
         }
         
+        // 부모 노드를 씬에 추가
+        arView.scene.rootNode.addChildNode(parentNode)
+        
+        addPathPoints()
     }
+
     
     func manageNodeVisibility() {
-        for pathNodeName in pathList {
-            
+        guard let currentNode = currentNode else { return }
+        for node in userPathNodeList {
+            if currentNode.name == node.name {
+                currentNode.isHidden = false
+            } else {
+                node.isHidden = true
+            }
         }
+        
+        
     }
 
     
@@ -187,11 +239,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         
         for i in 1...numberOfPoints {
             let yOffset = Float(i) * spacing
-            let pointPosition = SCNVector3(
-                targetNode.position.x,
-                targetNode.position.y - yOffset,
-                targetNode.position.z
-            )
+            let pointPosition = SCNVector3(0, -yOffset, 0)
     
             let sphereGeometry = SCNSphere(radius: 0.01)
             sphereGeometry.firstMaterial?.diffuse.contents = UIColor.red
@@ -199,26 +247,71 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
             let sphereNode = SCNNode(geometry: sphereGeometry)
             sphereNode.position = pointPosition
             
-            arView.scene.rootNode.addChildNode(sphereNode)
+            targetNode.addChildNode(sphereNode)
         }
+        
+        let platformWidth: CGFloat = 0.2
+        let platformHeight: CGFloat = 0.02
+        let platformDepth: CGFloat = 0.2
+        let platformYOffset: Float = 1.2 // distance between from node to below
+
+        let platformGeometry = SCNBox(width: platformWidth, height: platformHeight, length: platformDepth, chamferRadius: 0)
+        platformGeometry.firstMaterial?.diffuse.contents = UIColor.gray
+        
+        let platformNode = SCNNode(geometry: platformGeometry)
+        platformNode.position = SCNVector3(0, -platformYOffset, 0)
+    
+        targetNode.addChildNode(platformNode)
     }
     
-    func addPointDirectionNode() {
+    func addPathPoints() {
         guard let targetNode = currentNode else { return }
-        guard let currentFrame = arView?.session.currentFrame else { return }
         
-        let numberofPoints = 10
         let spacing: Float = 0.1
         
-        let cameraPosition = SCNVector3(
-            currentFrame.camera.transform.columns.3.x,
-            currentFrame.camera.transform.columns.3.y,
-            currentFrame.camera.transform.columns.3.z
-        )
-        
-        while(true) {
+        for node in userPathNodeList {
+            let fromNode = node
+            
+            if node == userPathNodeList.last { return }
+            
+            let toNode = userPathNodeList[userPathNodeList.firstIndex(of: node)! + 1]
+            
+            let fromNodePosition = SCNVector3(fromNode.position.x, fromNode.position.y - 1, fromNode.position.z)
+            let toNodePosition = SCNVector3(toNode.position.x, toNode.position.y - 1, toNode.position.z)
+            
+            let direction = SCNVector3(
+                toNodePosition.x - fromNodePosition.x,
+                toNodePosition.y - fromNodePosition.y,
+                toNodePosition.z - fromNodePosition.z
+            )
+            
+            let distance = sqrt(pow(direction.x, 2) + pow(direction.y, 2) + pow(direction.z, 2))
+            
+            var currentPosition = fromNodePosition
+            
+            let step = SCNVector3(
+                direction.x / distance * spacing,
+                direction.y / distance * spacing,
+                direction.z / distance * spacing
+            )
+            
+            for _ in stride(from: 0, to: distance, by: spacing) {
+                let sphereGeometry = SCNSphere(radius: 0.01)
+                sphereGeometry.firstMaterial?.diffuse.contents = UIColor.red
+                let sphereNode = SCNNode(geometry: sphereGeometry)
+                sphereNode.position = currentPosition
+                arView.scene.rootNode.addChildNode(sphereNode)
+                
+                // 다음 위치로 이동
+                currentPosition = SCNVector3(
+                    currentPosition.x + step.x,
+                    currentPosition.y + step.y,
+                    currentPosition.z + step.z
+                )
+            }
             
         }
+        
         
     }
 
@@ -252,7 +345,15 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         updateDistanceText(distance: distance) // showing distance data to user.
         
         if distance < 0.5 {
-            currentNodeIndex += 1
+            if currentNode == userPathNodeList.last {
+                print("User has reached the end of the path.")
+            }
+            if let nextNodeIndex = pathList.firstIndex(of: currentNode.name!), nextNodeIndex + 1 < pathList.count {
+                //deletePointsBelowNode()
+                self.currentNode = userPathNodeList[nextNodeIndex+1]
+                addPointsBelowNode()
+                print("Next Node: \(self.currentNode?.name ?? "")")
+            }
         }
     }
 
@@ -302,6 +403,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         checkNodeProximity()
+        manageNodeVisibility()
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
@@ -312,6 +414,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         print("ARSession interruption ended and restarted")
         session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
     }
+
     
     func updateNodeScales(){
         guard let currentNode = currentNode else { return }
