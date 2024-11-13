@@ -10,21 +10,16 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     var campNaviViewModel: CampusNavigatorViewModel
     
     @Published var arConfiguration: ARWorldTrackingConfiguration = ARWorldTrackingConfiguration()
-    //@Published var arConfiguration: ARConfiguration = AROrientationTrackingConfiguration()
+
     var currentNodeIndex: Int = 0  // 현재 노드의 인덱스
     var currentNode: SCNNode?      // 현재 표시되는 노드
     var initialNode: nodes?
     var initialAnchor: ARAnchor?
     var distanceTextNode: SCNNode?
-    var lineNode: SCNNode?
     var scaleFactor: Float = 5.623
     var arMapNodes: [nodes] = []
     var userPathNodeList: [SCNNode] = []
     
-    var detectedWalls: [ARPlaneAnchor] = []
-    
-    
-    let globalRotationDegrees: Float = 100.0
     
     init(campusNavigatorViewModel: CampusNavigatorViewModel) {
         self.campNaviViewModel = campusNavigatorViewModel
@@ -48,7 +43,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         
         arView.debugOptions = [
             ARSCNDebugOptions.showFeaturePoints,
-            ARSCNDebugOptions.showWorldOrigin,
+            //ARSCNDebugOptions.showWorldOrigin,
             ARSCNDebugOptions.showPhysicsShapes
         ]
         
@@ -59,7 +54,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         coachingOverlay.translatesAutoresizingMaskIntoConstraints = false
         arView.addSubview(coachingOverlay)
         
-        // 제약 조건 설정
         NSLayoutConstraint.activate([
             coachingOverlay.leadingAnchor.constraint(equalTo: arView.leadingAnchor),
             coachingOverlay.trailingAnchor.constraint(equalTo: arView.trailingAnchor),
@@ -70,9 +64,35 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         
     }
     
+    func resetARSession() {
+        
+        arView.session.pause()
+        
+        arView.scene.rootNode.enumerateChildNodes { (node, stop) in  // Erase original anchor and node
+            node.removeFromParentNode()
+        }
+        
+        if let anchors = arView.session.currentFrame?.anchors {
+            for anchor in anchors {
+                arView.session.remove(anchor: anchor)
+            }
+        }
+        
+        self.currentNodeIndex = 0
+        self.currentNode = nil
+        self.initialNode = nil
+        self.initialAnchor = nil
+        self.distanceTextNode = nil
+        self.userPathNodeList.removeAll()
+        
+        //arView.session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
+        
+        print("reset completed")
+        
+    }
+    
     func startARSession() {
         configureARSession(for: arView)        // setup AR Session
-        //addInitialWorldAnchor()
         makeScaleUpNodeList()                  // create UP scale node list: arMapNodes
     }
     
@@ -80,11 +100,11 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         addInitialWorldAnchor()
         self.initialNode = arMapNodes.first(where: { $0.name == pathList.first}) // set the first pathList node as a initial node.
         addAllPathNode()
+        addPathPoints()
         
     }
     
     func makeScaleUpNodeList() {
-        
         for node in FHnodes {
             let arNode = nodes(name: node.name, x: scaleFactor * node.x, y: scaleFactor * node.y, z: scaleFactor * node.z)
             arMapNodes.append(arNode)
@@ -107,24 +127,18 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     }
     
     func addInitialWorldAnchor() {
-        // 원하는 위치 설정 (예: 원점)
         let position = SCNVector3(0, 0, 0)
         
-        // Yaw 회전 행렬 생성
-        let rotation = rotationMatrix(yawDegrees: globalRotationDegrees)
-        
-        // 변환 행렬 설정
         var transform = matrix_identity_float4x4
         transform.columns.3.x = position.x
         transform.columns.3.y = position.y
         transform.columns.3.z = position.z
-        transform = matrix_multiply(transform, rotation)
         
         let worldAnchor = ARAnchor(transform: transform)
         initialAnchor = worldAnchor
         arView.session.add(anchor: worldAnchor)
         
-        print("World anchor added with rotation of \(globalRotationDegrees) degrees at position \(position)")
+        print("World anchor added at position \(position)")
     }
     
     func rotationMatrix(yawDegrees: Float) -> simd_float4x4 {
@@ -152,23 +166,12 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     
     func addAllPathNode() {
         guard let initialNode = initialNode else { print("Couldn't find initial node"); return }
-        
-        // 부모 노드 생성
-        let parentNode = SCNNode()
-        parentNode.name = "PathNodesParent"
-        
-        // 부모 노드의 앵커 생성 및 추가
-        let parentTransform = parentNode.simdWorldTransform
-        let anchor = ARAnchor(name: parentNode.name ?? "ParentNode", transform: parentTransform)
-        arView.session.add(anchor: anchor)
-        
         for pathNodeName in pathList {
             if let pathNodeData = arMapNodes.first(where: { $0.name == pathNodeName }) {
                 let relativeX = pathNodeData.x - initialNode.x
                 let relativeY = 0.0
                 let relativeZ = -(pathNodeData.y - initialNode.y)
                 
-                // 자식 노드 생성
                 let node = SCNNode()
                 node.name = pathNodeData.name
                 node.position = SCNVector3(relativeX, Float(relativeY), relativeZ)
@@ -179,8 +182,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
                 node.geometry = sphere
                 node.isHidden = true
                 
-                // 자식 노드를 부모 노드에 추가
-                parentNode.addChildNode(node)
+                arView.scene.rootNode.addChildNode(node)
                 
                 userPathNodeList.append(node)
                 
@@ -190,10 +192,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
             }
         }
         
-        // 부모 노드를 씬에 추가
-        arView.scene.rootNode.addChildNode(parentNode)
-        
-        addPathPoints()
     }
 
     
@@ -415,7 +413,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
     }
 
-    
     func updateNodeScales(){
         guard let currentNode = currentNode else { return }
         guard let currentFrame = arView?.session.currentFrame else { return }

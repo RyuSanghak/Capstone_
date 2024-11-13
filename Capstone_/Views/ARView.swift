@@ -18,8 +18,11 @@ struct ARView: View {
                     .cornerRadius(10)
             }
         }
-        .onAppear(){
+        .onAppear() {
             viewModel.startARSession()
+        }
+        .onDisappear() {
+            viewModel.resetARSession()
         }
     }
 }
