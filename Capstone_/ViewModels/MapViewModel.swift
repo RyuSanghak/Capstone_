@@ -39,28 +39,18 @@ class MapViewModel: ObservableObject {
         if let mapNode = loadUSDZModel(named: selectedMap.name){
             scene.rootNode.addChildNode(mapNode)
             
-<<<<<<< HEAD
-            /*
-            //draw dots
-=======
             
             /* draw dots
->>>>>>> sryu
             for n in mapNodes{
                 
                 let a = createSphereNode(position: SCNVector3(x: Float(n.x), y: Float(n.y), z: Float(n.z)))
                 scene.rootNode.addChildNode(a)
                 
             }
-<<<<<<< HEAD
-             
-    
-=======
              */
             
->>>>>>> sryu
         
-            
+            /*
             let node1 = createSphereNode(position: SCNVector3(x: 1, y: -1, z: 3))
             let node2 = createSphereNode(position: SCNVector3(x: 2, y: -5, z: 3))
             let node3 = createSphereNode(position: SCNVector3(x: 3, y: 3, z: 3))
@@ -75,7 +65,8 @@ class MapViewModel: ObservableObject {
             
             scene.rootNode.addChildNode(line1)
             scene.rootNode.addChildNode(line2)
-          
+            */
+            /*
             let overViewCamNode = SCNNode()
             overViewCamNode.camera = SCNCamera()
             overViewCamNode.position = SCNVector3(x: 0, y: 4000, z: 0)

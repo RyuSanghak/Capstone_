@@ -23,9 +23,5 @@ struct nodes {
 struct edges{
     let from: String
     let to: String
-<<<<<<< HEAD
-    let distance: Double
-=======
     //let distance: Double
->>>>>>> sryu
 }
