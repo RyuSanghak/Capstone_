@@ -161,6 +161,10 @@ let FHedges: [edges] = [
     edges(from: "f1n38", to: "Room 1350"),
     edges(from: "f1n38", to: "f1n39"),
     edges(from: "f1n39", to: "f1n40"),
+<<<<<<< HEAD
+=======
+    edges(from: "f1n39", to: "Room 1350"),
+>>>>>>> sryu
     edges(from: "f1n39", to: "1300c"),
     edges(from: "f1n40", to: "Room 1350"),
     edges(from: "f1n40", to: "Room 1310"),
@@ -398,7 +402,11 @@ let TestconnectNodes: [edges] = [
 //        var y1: Double? = nil
 //        var x2: Double? = nil
 //        var y2: Double? = nil
+<<<<<<< HEAD
 //        
+=======
+//
+>>>>>>> sryu
 //        for node in mapNodes {
 //            if node.name == edge.from {
 //                x1 = node.x
@@ -410,7 +418,11 @@ let TestconnectNodes: [edges] = [
 //                print("Node \(node.name): \(x2!), \(y2!)")
 //            }
 //        }
+<<<<<<< HEAD
 //        
+=======
+//
+>>>>>>> sryu
 //        // Ensure both nodes were found before calculating the distance
 //        if let x1 = x1, let y1 = y1, let x2 = x2, let y2 = y2 {
 //            let distance = sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2))

@@ -15,13 +15,17 @@ struct IndoorMap: Identifiable {
 
 struct nodes {
     let name: String
-    let x: Double
-    let y: Double
-    let z: Double
+    let x: Float
+    let y: Float
+    let z: Float
 }
 
 struct edges{
     let from: String
     let to: String
+<<<<<<< HEAD
     let distance: Double
+=======
+    //let distance: Double
+>>>>>>> sryu
 }

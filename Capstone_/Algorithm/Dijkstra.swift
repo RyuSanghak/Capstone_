@@ -63,6 +63,10 @@ func printCost(for path: [GKGraphNode]) {
 func findPath(buildingName: String, start: String, end: String) {
     
     var nodeList: [MyNode] = []
+<<<<<<< HEAD
+=======
+    pathList.removeAll()
+>>>>>>> sryu
     
 
     //빌딩별로 데이터 셋업

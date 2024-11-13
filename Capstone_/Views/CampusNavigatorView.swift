@@ -1,5 +1,9 @@
 import SwiftUI
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> sryu
 struct CampusNavigatorView: View {
     @EnvironmentObject var viewModel: CampusNavigatorViewModel
     @EnvironmentObject var mapViewModel: MapViewModel
@@ -76,6 +80,9 @@ struct CampusNavigatorView: View {
         }
     }
 }
+<<<<<<< HEAD
 
     
     
+=======
+>>>>>>> sryu

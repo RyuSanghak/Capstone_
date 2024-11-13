@@ -27,6 +27,7 @@ class MapViewModel: ObservableObject {
     }
 
     
+    
     func createMapScene(mapName: String) -> SCNScene {
         guard let selectedMap = selectedMap else {
             scene = nil
@@ -38,16 +39,26 @@ class MapViewModel: ObservableObject {
         if let mapNode = loadUSDZModel(named: selectedMap.name){
             scene.rootNode.addChildNode(mapNode)
             
+<<<<<<< HEAD
             /*
             //draw dots
+=======
+            
+            /* draw dots
+>>>>>>> sryu
             for n in mapNodes{
                 
                 let a = createSphereNode(position: SCNVector3(x: Float(n.x), y: Float(n.y), z: Float(n.z)))
                 scene.rootNode.addChildNode(a)
                 
             }
+<<<<<<< HEAD
              
     
+=======
+             */
+            
+>>>>>>> sryu
         
             
             let node1 = createSphereNode(position: SCNVector3(x: 1, y: -1, z: 3))
@@ -130,7 +141,7 @@ class MapViewModel: ObservableObject {
 
             // set the position and scale for mapNode
             mapNode.position = SCNVector3(0, 0, 0)
-            mapNode.scale = SCNVector3(0.01, 0.01, 0.01) // 1/100 scale
+            //mapNode.scale = SCNVector3(0.01, 0.01, 0.01) // 1/100 scale
             //mapNode.scale = SCNVector3(1, 1, 1)
             // set name of mapNode
             mapNode.name = selectedMap?.name
@@ -157,4 +168,5 @@ class MapViewModel: ObservableObject {
         }
             
     }
+    
 }
