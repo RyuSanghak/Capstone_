@@ -3,6 +3,8 @@ import Foundation
 import SceneKit
 import Combine
 
+
+/*
 class MapViewModel: ObservableObject {
     @Published var maps: [IndoorMap] = []
     @Published var selectedMap: IndoorMap?
@@ -14,6 +16,8 @@ class MapViewModel: ObservableObject {
         //loadMaps()
     }
     
+    let filteredNodes = FHnodes.filter {$0.name.prefix(6) == "F1toF2"}
+    
     func loadMaps(buildingName: String) {
         
         if buildingName == "Memorial Field House" {
@@ -22,11 +26,53 @@ class MapViewModel: ObservableObject {
                 IndoorMap(name: "MFH_2", filename: "MFH_2.usdz"),
                 
             ]
-            selectedMap = maps.first // init selectedMap
+            selectedMap = maps[0] // init selectedMap
+            print(filteredNodes)
         }
     }
+*/
 
+class MapViewModel: ObservableObject {
+    @Published var maps: [IndoorMap] = []
+    @Published var selectedMap: IndoorMap?
+    @Published var scene: SCNScene?
     
+    var timer: Timer? // 타이머 변수
+    
+    init() {
+        // 타이머를 설정하여 1초마다 loadMaps 호출
+        startTimer()
+    }
+    
+    deinit {
+        stopTimer() // 객체가 해제될 때 타이머를 멈춤
+    }
+    
+    // 타이머 시작 함수
+    func startTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.loadMaps(buildingName: "Memorial Field House")
+        }
+    }
+    
+    // 타이머 중지 함수
+    func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    let filteredNodes = FHnodes.filter {$0.name.prefix(6) == "F1toF2"}
+    
+    func loadMaps(buildingName: String) {
+        if buildingName == "Memorial Field House" {
+            maps = [
+                IndoorMap(name: "MFH_1", filename: "MFH_1.usdz"),
+                IndoorMap(name: "MFH_2", filename: "MFH_2.usdz"),
+            ]
+            selectedMap = maps[0] // init selectedMap
+            print("1s")
+        }
+    }
     
     func createMapScene(mapName: String) -> SCNScene {
         guard let selectedMap = selectedMap else {
