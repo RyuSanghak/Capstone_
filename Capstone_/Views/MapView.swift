@@ -9,7 +9,7 @@ import SwiftUI
 import SceneKit
 
 struct MapView: View {
-    @ObservedObject var viewModel: MapViewModel
+    @EnvironmentObject var viewModel: MapViewModel
 
     var body: some View {
         VStack{
@@ -24,7 +24,6 @@ struct MapView: View {
             }
         }
         .onAppear(){
-            //findPath(buildingName: "mapNodes", start: "f1n20", end: "f1n23")
         }
     }
 }

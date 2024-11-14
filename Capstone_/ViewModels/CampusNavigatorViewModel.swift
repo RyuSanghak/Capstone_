@@ -55,5 +55,9 @@ class CampusNavigatorViewModel: ObservableObject {
             }
         }
     }
+    
+    func getBuildingName() -> String {
+        return selectedBuilding ?? " "
+    }
 }
 

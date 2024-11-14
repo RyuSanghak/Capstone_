@@ -2,6 +2,7 @@ import ARKit
 import SceneKit
 import SwiftUI
 import simd
+import CoreLocation
 
 class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDelegate, CLLocationManagerDelegate {
     
@@ -10,9 +11,14 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     var campNaviViewModel: CampusNavigatorViewModel
     
     @Published var arConfiguration: ARWorldTrackingConfiguration = ARWorldTrackingConfiguration()
+    
+    var locationManager: CLLocationManager!
+    @Published var currentHeading: Double = 0.0
+    @Published var isSessionStarted: Bool = false
+    
 
     var currentNodeIndex: Int = 0  // 현재 노드의 인덱스
-    var currentNode: SCNNode?      // 현재 표시되는 노드
+    @Published var currentNode: SCNNode?      // 현재 표시되는 노드
     var initialNode: nodes?
     var initialAnchor: ARAnchor?
     var distanceTextNode: SCNNode?
@@ -25,14 +31,19 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         self.campNaviViewModel = campusNavigatorViewModel
         super.init()
         setupConfiguration()
+        setupLocationManager()
     }
     
     private func setupConfiguration() {
         arConfiguration.isLightEstimationEnabled = true
-        arConfiguration.worldAlignment = .gravityAndHeading
+        arConfiguration.worldAlignment = .gravity
         arConfiguration.planeDetection = [.horizontal, .vertical]
         arConfiguration.environmentTexturing = .automatic
 
+    }
+    
+    func getCurrentNode() -> SCNNode? {
+        return self.currentNode
     }
     
     func configureARSession(for arView: ARSCNView) {
@@ -43,7 +54,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         
         arView.debugOptions = [
             ARSCNDebugOptions.showFeaturePoints,
-            //ARSCNDebugOptions.showWorldOrigin,
+            ARSCNDebugOptions.showWorldOrigin,
             ARSCNDebugOptions.showPhysicsShapes
         ]
         
@@ -63,6 +74,8 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         arView.session.run(arConfiguration)
         
     }
+    
+
     
     func resetARSession() {
         
@@ -84,6 +97,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         self.initialAnchor = nil
         self.distanceTextNode = nil
         self.userPathNodeList.removeAll()
+        self.isSessionStarted = false
         
         //arView.session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
         
@@ -110,20 +124,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
             arMapNodes.append(arNode)
         }
         
-    }
-    
-    func callNodesData() -> String {
-        let buildingName = campNaviViewModel.selectedBuilding
-        switch buildingName {
-        case "Memorial Field House":
-            return "FHnodes"
-        case "Rocket Hall":
-            return "TestNodes"
-        case "Nitschke Hall":
-            return "TestNodes"
-        default:
-            return "[]"
-        }
     }
     
     func addInitialWorldAnchor() {
@@ -204,27 +204,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
                 node.isHidden = true
             }
         }
-        
-        
-    }
-
-    
-    func addSpawnNode(){
-        let targetNode = currentNode!
-        let radius: CGFloat = 2
-        let height: CGFloat = 0.1
-        let circleGeometry = SCNCylinder(radius: radius, height: height)
-        
-        circleGeometry.firstMaterial?.diffuse.contents = UIColor.green.withAlphaComponent(0.5)
-        circleGeometry.firstMaterial?.isDoubleSided = true
-        
-        let cylinderNode = SCNNode(geometry: circleGeometry)
-        cylinderNode.position = SCNVector3(targetNode.position.x, targetNode.position.y - 5, targetNode.position.z)
-        
-        print(cylinderNode.position)
-        //cylinderNode.eulerAngles.x = -.pi / 2
-        targetNode.addChildNode(cylinderNode)
-        cylinderNode.position = SCNVector3(0, -10, 0)
         
         
     }
@@ -440,5 +419,30 @@ extension SCNVector3 {
         let dy = self.y - vector.y
         let dz = self.z - vector.z
         return sqrt(dx * dx + dy * dy + dz * dz)
+    }
+}
+
+extension ARViewModel {
+    func setupLocationManager() {
+       locationManager = CLLocationManager()
+       locationManager.delegate = self
+       locationManager.desiredAccuracy = kCLLocationAccuracyBest
+       locationManager.headingFilter = kCLHeadingFilterNone
+       locationManager.requestWhenInUseAuthorization()
+
+       if CLLocationManager.headingAvailable() {
+           locationManager.startUpdatingHeading()
+       }
+   }
+
+   // CLLocationManagerDelegate 메서드
+   func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+       DispatchQueue.main.async {
+           self.currentHeading = newHeading.magneticHeading
+       }
+   }
+    
+    func isFacingNorth(threshold: Double = 5.0) -> Bool {
+        return abs(currentHeading) < threshold || abs(currentHeading - 360) < threshold
     }
 }

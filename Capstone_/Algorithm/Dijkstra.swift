@@ -36,6 +36,8 @@ class MyNode: GKGraphNode {
         travelCost[node] = weight
         guard bidirectional else { return }
         (node as? MyNode)?.travelCost[self] = weight
+        
+        
     }
 }
 
@@ -113,6 +115,7 @@ func findPath(buildingName: String, start: String, end: String) {
              print("Couldn't find node \(edge.from)")
         }
     }
+    
     
     let path = myGraph.findPath(from: (nodeList.first (where: { $0.name == start }))!, to: (nodeList.first (where: { $0.name == end }))!)
     
