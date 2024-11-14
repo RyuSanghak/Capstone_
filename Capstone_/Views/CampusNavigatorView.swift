@@ -62,9 +62,10 @@ struct CampusNavigatorView: View {
 
                             return
                         }
-                        
-                        
                         findPath(buildingName: selectedBuilding, start: startInput, end: endInput)
+                        mapViewModel.loadMaps(buildingName: viewModel.getBuildingName())
+                        mapViewModel.loadScene()
+                        
                  
                     })
                 } else {

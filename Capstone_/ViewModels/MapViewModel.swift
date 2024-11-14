@@ -5,25 +5,25 @@ import Combine
 
 class MapViewModel: ObservableObject {
     @Published var maps: [IndoorMap] = []
-    @Published var selectedMap: IndoorMap? {
-        didSet {  //
-            loadScene()
-        }
-    }
+    @Published var selectedMap: IndoorMap?
+    
     @Published var scene: SCNScene?
     
     
     init() {
-        loadMaps()
+        //loadMaps()
     }
     
-    private func loadMaps() {
-        maps = [
-            IndoorMap(name: "MFH_1", filename: "MFH_1.usdz"),
-            IndoorMap(name: "MFH_2", filename: "MFH_2.usdz"),
-            
-        ]
-        selectedMap = maps.first // init selectedMap
+    func loadMaps(buildingName: String) {
+        
+        if buildingName == "Memorial Field House" {
+            maps = [
+                IndoorMap(name: "MFH_1", filename: "MFH_1.usdz"),
+                IndoorMap(name: "MFH_2", filename: "MFH_2.usdz"),
+                
+            ]
+            selectedMap = maps.first // init selectedMap
+        }
     }
 
     
@@ -31,6 +31,7 @@ class MapViewModel: ObservableObject {
     func createMapScene(mapName: String) -> SCNScene {
         guard let selectedMap = selectedMap else {
             scene = nil
+            print("ssss")
             return SCNScene() // return empty scene
         }
 
@@ -39,44 +40,43 @@ class MapViewModel: ObservableObject {
         if let mapNode = loadUSDZModel(named: selectedMap.name){
             scene.rootNode.addChildNode(mapNode)
             
-            
-            /* draw dots
-            for n in mapNodes{
-                
-                let a = createSphereNode(position: SCNVector3(x: Float(n.x), y: Float(n.y), z: Float(n.z)))
-                scene.rootNode.addChildNode(a)
-                
+            for nodeName in pathList {
+                if let node = FHnodes.first(where: { $0.name == nodeName }) {
+                    let sphereNode = createSphereNode(position: SCNVector3(x: node.x, y: node.y, z: node.z))
+                    scene.rootNode.addChildNode(sphereNode)
+                    
+                } else {
+                    print("Error: Could not find node with name \(nodeName)")
+                }
             }
-             */
-            
-        
-            /*
-            let node1 = createSphereNode(position: SCNVector3(x: 1, y: -1, z: 3))
-            let node2 = createSphereNode(position: SCNVector3(x: 2, y: -5, z: 3))
-            let node3 = createSphereNode(position: SCNVector3(x: 3, y: 3, z: 3))
-            
-            scene.rootNode.addChildNode(node1)
-            scene.rootNode.addChildNode(node2)
-            scene.rootNode.addChildNode(node3)
-            
-            // 노드 간 선 그리기
-            let line1 = createLine(from: node1.position, to: node2.position)
-            let line2 = createLine(from: node2.position, to: node3.position)
-            
-            scene.rootNode.addChildNode(line1)
-            scene.rootNode.addChildNode(line2)
-            */
-            /*
-            let overViewCamNode = SCNNode()
-            overViewCamNode.camera = SCNCamera()
-            overViewCamNode.position = SCNVector3(x: 0, y: 4000, z: 0)
-            overViewCamNode.eulerAngles = SCNVector3(x: -.pi / 2, y: 0, z: 0)
-            overViewCamNode.look(at: SCNVector3(x: 0, y: 0, z: 0))
-            overViewCamNode.camera?.usesOrthographicProjection = true
-            //mapNode.addChildNode(overViewCamNode)
-             */
         }
-
+        
+        // Draw lines only between consecutive nodes in pathList
+        for i in 0..<(pathList.count) {
+            if i+1 < pathList.count{
+                let fromNodeName = pathList[i]
+                let toNodeName = pathList[i+1]
+                if let fromNode = FHnodes.first(where: { $0.name == fromNodeName }),
+                               let toNode = FHnodes.first(where: { $0.name == toNodeName }) {
+                                print("From")
+                                print (fromNode)
+                                print("To")
+                                print(toNode)
+                                print("---------------------------------")
+                    
+                        
+                        
+                    
+                // Create a line node between `fromNode` and `toNode`
+                let lineNode = createLineNode(from: SCNVector3(x: fromNode.x, y: fromNode.y, z: fromNode.z),
+                                              to: SCNVector3(x: toNode.x, y: toNode.y, z: toNode.z))
+                scene.rootNode.addChildNode(lineNode)
+            }
+            } else {
+                print("Error: ")
+            }
+        }
+        
         print(scene.rootNode.scale)
         print(scene.rootNode.boundingBox)
         
@@ -85,9 +85,48 @@ class MapViewModel: ObservableObject {
         return scene
     }
     
+    
+
+
+    func createLineNode(from: SCNVector3, to: SCNVector3) -> SCNNode {
+        // Calculate the distance between the two points for the cylinder's height
+        let distance = sqrt(pow(to.x - from.x, 2) + pow(to.y - from.y, 2) + pow(to.z - from.z, 2))
+        
+        // Create a cylinder with the calculated height
+        let cylinder = SCNCylinder(radius: 0.05, height: CGFloat(distance))
+        cylinder.firstMaterial?.diffuse.contents = UIColor.blue // Set the line color
+        
+        // Create a node for the cylinder geometry
+        let lineNode = SCNNode(geometry: cylinder)
+        
+        // Position the line node at the midpoint between `from` and `to`
+        lineNode.position = SCNVector3(
+            (from.x + to.x) / 2,
+            (from.y + to.y) / 2,
+            (from.z + to.z) / 2
+        )
+        // Additional flip around x-axis if to.x > from.x and to.y > from.y
+        if to.x > from.x && to.y > from.y {
+            lineNode.eulerAngles.z += .pi // Flip 180 degrees around z-axis to invert along the x-axis
+        }
+        // Additional flip around x-axis if to.x > from.x and to.y > from.y
+        if to.x > from.x && to.y < from.y {
+            lineNode.eulerAngles.z -= .pi // Flip 180 degrees around z-axis to invert along the x-axis
+        }
+
+        // Orient the cylinder to align with the direction between `from` and `to`
+        lineNode.look(at: to)
+        lineNode.eulerAngles.x += .pi / 2 // Rotate 90 degrees around x-axis to align correctly
+        
+        
+        
+        return lineNode
+    }
+
+    
     func createSphereNode(position: SCNVector3) -> SCNNode {
         let sphere = SCNSphere(radius: 0.1)
-        sphere.firstMaterial?.diffuse.contents = UIColor.red
+        sphere.firstMaterial?.diffuse.contents = UIColor.blue
 
         let sphereNode = SCNNode(geometry: sphere)
         sphereNode.position = position
@@ -95,24 +134,6 @@ class MapViewModel: ObservableObject {
         return sphereNode
     }
     
-    func createLine(from: SCNVector3, to: SCNVector3) -> SCNNode {
-        let vertices = [from, to]
-        
-        let vertexSource = SCNGeometrySource(vertices: vertices)
-        let indices: [Int32] = [0, 1]
-        let indexData = Data(bytes: indices, count: indices.count * MemoryLayout<Int32>.size)
-        let geometryElement = SCNGeometryElement(data: indexData,
-                                                 primitiveType: .line,
-                                                 primitiveCount: 1,
-                                                 bytesPerIndex: MemoryLayout<Int32>.size)
-        
-        let lineGeometry = SCNGeometry(sources: [vertexSource], elements: [geometryElement])
-        lineGeometry.firstMaterial?.diffuse.contents = UIColor.yellow
-        lineGeometry.firstMaterial?.isDoubleSided = true
-        
-        let lineNode = SCNNode(geometry: lineGeometry)
-        return lineNode
-    }
     
     func loadUSDZModel(named name: String) -> SCNNode? {
         guard let url = Bundle.main.url(forResource: name, withExtension: "usdz")
@@ -145,10 +166,11 @@ class MapViewModel: ObservableObject {
     }
 
     
-    private func loadScene() {
+    func loadScene() {
 
         guard let selectedMap = selectedMap else {
             scene = nil
+            print("scene nil")
             return
         }
         
