@@ -70,7 +70,6 @@ class MapViewModel: ObservableObject {
                 IndoorMap(name: "MFH_2", filename: "MFH_2.usdz"),
             ]
             selectedMap = maps[0] // init selectedMap
-            print("1s")
         }
     }
     
