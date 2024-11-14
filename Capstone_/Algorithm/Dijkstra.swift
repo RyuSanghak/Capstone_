@@ -36,6 +36,8 @@ class MyNode: GKGraphNode {
         travelCost[node] = weight
         guard bidirectional else { return }
         (node as? MyNode)?.travelCost[self] = weight
+        
+        
     }
 }
 
@@ -99,33 +101,27 @@ func findPath(buildingName: String, start: String, end: String) {
 
     myGraph.add(nodeList)
     
-//    for edge in selectedEdges {
-//        if let fromNode = nodeList.first(where: { $0.name == edge.from }) {
-//            if let toNode = nodeList.first(where: { $0.name == edge.to }) {
-//                let baseWeight = euclideanDistance(pointA: fromNode, pointB: toNode)
-//                
-//                let weight: Float
-//                if fromNode.z != toNode.z {
-//                    weight = baseWeight * 30
-//                } else {
-//                    weight = baseWeight
-//                }
-//                
-//                fromNode.addConnection(to: toNode, weight: weight)
-//            } else {
-//                print("Couldn't find node \(edge.to)")
-//            }
-//        } else {
-//             print("Couldn't find node \(edge.from)")
-//        }
-//    }
+    for edge in selectedEdges {
+        if let fromNode = nodeList.first(where: { $0.name == edge.from }) {
+            if let toNode = nodeList.first(where: { $0.name == edge.to }) {
+                fromNode.addConnection(to: toNode, weight: euclideanDistance(pointA: fromNode, pointB: toNode))
+            }
+            else {
+                print("couldn't find node \(edge.to)")
+            }
+        }
+        else {
+             print("Couldn't find node \(edge.from)")
+        }
+    }
+    
     
     let path = myGraph.findPath(from: (nodeList.first (where: { $0.name == start }))!, to: (nodeList.first (where: { $0.name == end }))!)
     
     printPath(path)
     printCost(for: path)
     
-    path.compactMap({ $0 as? MyNode }).forEach { node in
+    path.compactMap({ $0 as? MyNode}).forEach { node in  // make path list as String
         pathList.append(node.name)
     }
     

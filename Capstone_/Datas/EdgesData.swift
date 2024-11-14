@@ -181,7 +181,7 @@ let FHedges: [edges] = [
     edges(from: "Stair C1005", to: "Stair C2001"),
     edges(from: "Stair C1029", to: "Stair C2017"),
     edges(from: "Stair C1024", to: "Stair C2012"),
-    edges(from: "Stair C1010a", to: "f2n13"),
+    edges(from: "Stair C1010a", to: "f2n13"), //C1010a = 0.2, f2n13 = 0.21
     edges(from: "Stair C1010b", to: "f2n1"),
     
     //2nd Floor

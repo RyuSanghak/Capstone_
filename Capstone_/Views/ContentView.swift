@@ -13,10 +13,10 @@ struct ContentView: View {
             VStack{
                 
                 ARView(viewModel: arViewModel)
-                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.7)
+                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.6)
                 
                 MapView(viewModel: mapViewModel) // navigate to MapView
-                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.3)
+                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.4)
                     .transition(.opacity)
                 
             }
