@@ -31,7 +31,6 @@ class MapViewModel: ObservableObject {
     func createMapScene(mapName: String) -> SCNScene {
         guard let selectedMap = selectedMap else {
             scene = nil
-            print("ssss")
             return SCNScene() // return empty scene
         }
 
@@ -57,12 +56,12 @@ class MapViewModel: ObservableObject {
                 let fromNodeName = pathList[i]
                 let toNodeName = pathList[i+1]
                 if let fromNode = FHnodes.first(where: { $0.name == fromNodeName }),
-                               let toNode = FHnodes.first(where: { $0.name == toNodeName }) {
-                                print("From")
-                                print (fromNode)
-                                print("To")
-                                print(toNode)
-                                print("---------------------------------")
+                let toNode = FHnodes.first(where: { $0.name == toNodeName }) {
+//                                print("From")
+//                                print (fromNode)
+//                                print("To")
+//                                print(toNode)
+//                                print("---------------------------------")
                     
                         
                         
@@ -89,35 +88,27 @@ class MapViewModel: ObservableObject {
 
 
     func createLineNode(from: SCNVector3, to: SCNVector3) -> SCNNode {
-        // Calculate the distance between the two points for the cylinder's height
         let distance = sqrt(pow(to.x - from.x, 2) + pow(to.y - from.y, 2) + pow(to.z - from.z, 2))
         
-        // Create a cylinder with the calculated height
         let cylinder = SCNCylinder(radius: 0.05, height: CGFloat(distance))
         cylinder.firstMaterial?.diffuse.contents = UIColor.blue // Set the line color
         
-        // Create a node for the cylinder geometry
         let lineNode = SCNNode(geometry: cylinder)
         
-        // Position the line node at the midpoint between `from` and `to`
         lineNode.position = SCNVector3(
             (from.x + to.x) / 2,
             (from.y + to.y) / 2,
             (from.z + to.z) / 2
         )
-        // Additional flip around x-axis if to.x > from.x and to.y > from.y
         if to.x > from.x && to.y > from.y {
             lineNode.eulerAngles.z += .pi // Flip 180 degrees around z-axis to invert along the x-axis
         }
-        // Additional flip around x-axis if to.x > from.x and to.y > from.y
         if to.x > from.x && to.y < from.y {
-            lineNode.eulerAngles.z -= .pi // Flip 180 degrees around z-axis to invert along the x-axis
+            lineNode.eulerAngles.z -= .pi
         }
 
-        // Orient the cylinder to align with the direction between `from` and `to`
         lineNode.look(at: to)
         lineNode.eulerAngles.x += .pi / 2 // Rotate 90 degrees around x-axis to align correctly
-        
         
         
         return lineNode
@@ -133,7 +124,7 @@ class MapViewModel: ObservableObject {
 
         return sphereNode
     }
-    
+
     
     func loadUSDZModel(named name: String) -> SCNNode? {
         guard let url = Bundle.main.url(forResource: name, withExtension: "usdz")
