@@ -25,6 +25,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     var scaleFactor: Float = 5.623
     var arMapNodes: [nodes] = []
     var userPathNodeList: [SCNNode] = []
+    var arrowNode: SCNNode?
     
     
     init(campusNavigatorViewModel: CampusNavigatorViewModel) {
@@ -53,9 +54,9 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         arView.scene = SCNScene()
         
         arView.debugOptions = [
-            ARSCNDebugOptions.showFeaturePoints,
-            ARSCNDebugOptions.showWorldOrigin,
-            ARSCNDebugOptions.showPhysicsShapes
+            //ARSCNDebugOptions.showFeaturePoints,
+            //ARSCNDebugOptions.showWorldOrigin,
+            //ARSCNDebugOptions.showPhysicsShapes
         ]
         
         let coachingOverlay = ARCoachingOverlayView()
@@ -115,6 +116,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         self.initialNode = arMapNodes.first(where: { $0.name == pathList.first}) // set the first pathList node as a initial node.
         addAllPathNode()
         addPathPoints()
+        addArrowNodeToScene()
         
     }
     
@@ -149,19 +151,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         matrix.columns.2.x = -sin(yawRadians)
         matrix.columns.2.z = cos(yawRadians)
         return matrix
-    }
-    
-    //  convert virtual 2D coordinate into AR3D coordinates
-    func convertVirtual2DToAR3D(x: Float, y: Float) -> SCNVector3 {
-        let scaleFactor: Float = 1  // 가상 좌표계 단위당 ARKit의 단위 (미터)
-       
-        let originOffset = SCNVector3(0, 0, 0)  // 필요에 따라 설정
-        
-        let arX = x * scaleFactor + originOffset.x
-        let arY = 0.0 + originOffset.y  // 평면 상에 있으므로 y값은 0
-        let arZ = -y * scaleFactor + originOffset.z
-        
-        return SCNVector3(arX, arY, arZ)
     }
     
     func addAllPathNode() {
@@ -357,11 +346,11 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
             arView.scene.rootNode.addChildNode(distanceTextNode!)
         }
         
-        // place the text in front of the camera
+        // place the text in front of the camera and set position on the screen
         if let cameraNode = arView.pointOfView {
             var translation = matrix_identity_float4x4
             translation.columns.3.z = -10
-            translation.columns.3.y = -5
+            translation.columns.3.y = -3
             let textNodeTransform = simd_mul(cameraNode.simdTransform, translation)
             distanceTextNode?.simdTransform = textNodeTransform
 
@@ -381,6 +370,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         checkNodeProximity()
         manageNodeVisibility()
+        updateArrowNodePosition()
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
@@ -443,6 +433,79 @@ extension ARViewModel {
    }
     
     func isFacingNorth(threshold: Double = 5.0) -> Bool {
-        return abs(currentHeading) < threshold || abs(currentHeading - 360) < threshold
+        return abs(currentHeading) < threshold || abs(currentHeading - 350) < threshold
+    }
+}
+
+extension ARViewModel {
+    func loadArrowModel() -> SCNNode? {
+        if let scene = SCNScene(named: "arrow.usdz") {
+            let arrowNode = scene.rootNode.clone()
+            
+            arrowNode.scale = SCNVector3(1, 1, 1)
+
+            return arrowNode
+        } else {
+            print("failed to load arrow model")
+            return nil
+        }
+    }
+    
+    func addArrowNodeToScene() {
+        if self.arrowNode != nil { return }
+        guard let arrowNode = loadArrowModel() else { return }
+        arrowNode.name = "ArrowNode"
+        arView.scene.rootNode.addChildNode(arrowNode)
+        self.arrowNode = arrowNode
+    }
+    
+    func updateArrowNodePosition() {
+        guard let arrowNode = self.arrowNode,
+              let currentNode = self.currentNode,
+              let pointOfView = arView.pointOfView else { return }
+        
+        let cameraTransform = pointOfView.simdWorldTransform
+                
+        let forward = simd_float3(-cameraTransform.columns.2.x,
+                                  -cameraTransform.columns.2.y,
+                                  -cameraTransform.columns.2.z)
+        
+        let cameraPosition = simd_float3(cameraTransform.columns.3.x,
+                                        cameraTransform.columns.3.y,
+                                        cameraTransform.columns.3.z)
+        
+        let arrowPosition = cameraPosition + forward * 0.2 + simd_float3(0, -0.1, 0) // set position of arrowNode on the screen
+        arrowNode.simdPosition = arrowPosition
+        
+        let lookAtConstraint = SCNLookAtConstraint(target: currentNode)
+        lookAtConstraint.isGimbalLockEnabled = true
+        lookAtConstraint.worldUp = SCNVector3(0, 1, 0)
+        
+        lookAtConstraint.influenceFactor = 1.0 // only move y axis
+        arrowNode.constraints = [lookAtConstraint]
+        
+        let currentEulerAngles = arrowNode.eulerAngles
+        arrowNode.eulerAngles = SCNVector3(0, currentEulerAngles.y, 0)
+    }
+
+    
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        DispatchQueue.main.async {
+            self.updateArrowNodePosition()
+        }
+    }
+
+
+}
+
+extension SCNNode {
+    /// Returns the size of the node based on its bounding box
+    func size() -> SCNVector3 {
+        let (min, max) = self.boundingBox
+        return SCNVector3(
+            max.x - min.x,
+            max.y - min.y,
+            max.z - min.z
+        )
     }
 }
