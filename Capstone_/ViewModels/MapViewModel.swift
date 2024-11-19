@@ -25,8 +25,6 @@ class MapViewModel: ObservableObject {
             selectedMap = maps.first // init selectedMap
         }
     }
-
-    
     
     func createMapScene(mapName: String) -> SCNScene {
         guard let selectedMap = selectedMap else {
@@ -57,14 +55,6 @@ class MapViewModel: ObservableObject {
                 let toNodeName = pathList[i+1]
                 if let fromNode = FHnodes.first(where: { $0.name == fromNodeName }),
                 let toNode = FHnodes.first(where: { $0.name == toNodeName }) {
-//                                print("From")
-//                                print (fromNode)
-//                                print("To")
-//                                print(toNode)
-//                                print("---------------------------------")
-                    
-                        
-                        
                     
                 // Create a line node between `fromNode` and `toNode`
                 let lineNode = createLineNode(from: SCNVector3(x: fromNode.x, y: fromNode.y, z: fromNode.z),
@@ -79,13 +69,10 @@ class MapViewModel: ObservableObject {
         print(scene.rootNode.scale)
         print(scene.rootNode.boundingBox)
         
-        
+        updateNodeColor(scene: scene)
 
         return scene
     }
-    
-    
-
 
     func createLineNode(from: SCNVector3, to: SCNVector3) -> SCNNode {
         let distance = sqrt(pow(to.x - from.x, 2) + pow(to.y - from.y, 2) + pow(to.z - from.z, 2))
@@ -117,14 +104,13 @@ class MapViewModel: ObservableObject {
     
     func createSphereNode(position: SCNVector3) -> SCNNode {
         let sphere = SCNSphere(radius: 0.1)
-        sphere.firstMaterial?.diffuse.contents = UIColor.blue
+//        sphere.firstMaterial?.diffuse.contents = UIColor.blue
 
         let sphereNode = SCNNode(geometry: sphere)
         sphereNode.position = position
 
         return sphereNode
     }
-
     
     func loadUSDZModel(named name: String) -> SCNNode? {
         guard let url = Bundle.main.url(forResource: name, withExtension: "usdz")
@@ -155,7 +141,45 @@ class MapViewModel: ObservableObject {
             return nil
         }
     }
-
+    
+    var currentNodeIndex: Int = 0
+    
+    // Function to be called when the button is pressed to go to the next node
+    func nextNodeButtonPressed() {
+        // Increment the index to go to the next node
+        if currentNodeIndex < pathList.count - 1 {
+            currentNodeIndex += 1
+            loadScene() // Reload the scene to reflect the change
+        }
+    }
+    
+    // Function to simulate updating currentNode
+    func updateCurrentNode(newNode: String) {
+        currentNode = pathList[currentNodeIndex] // Update the currentNode value
+        print("!!!!!!Current Node is: ", currentNode) // Print currentNode
+    }
+    
+    // Update the color of the current node (based on currentNodeIndex)
+    func updateNodeColor(scene: SCNScene) {
+        // Reset color of all nodes in pathList to blue
+//        for i in 0..<pathList.count {
+//            if let node = FHnodes.first(where: { $0.name == pathList[i] }) {
+//                let sphereNode = createSphereNode(position: SCNVector3(x: node.x, y: node.y, z: node.z))
+//                sphereNode.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+//                scene.rootNode.addChildNode(sphereNode)
+//            }
+//        }
+        
+        // Update color of the current node to red
+        if currentNodeIndex < pathList.count {
+            let currentNodeName = pathList[currentNodeIndex]
+            if let node = FHnodes.first(where: { $0.name == currentNodeName }) {
+                let sphereNode = createSphereNode(position: SCNVector3(x: node.x, y: node.y, z: node.z))
+                sphereNode.geometry?.firstMaterial?.diffuse.contents = UIColor.red
+                scene.rootNode.addChildNode(sphereNode)
+            }
+        }
+    }
     
     func loadScene() {
 
@@ -170,7 +194,9 @@ class MapViewModel: ObservableObject {
         DispatchQueue.main.async {
             self.scene = mapScene
         }
-            
+        updateCurrentNode(newNode: currentNode)
     }
+    
+    
     
 }

@@ -23,6 +23,18 @@ struct MapView: View {
                 Text("Loading scene...")
             }
         }
+        // Button to move to the next node
+        Button(action: {
+            // Trigger nextNodeButtonPressed() in the ViewModel
+            viewModel.nextNodeButtonPressed()
+        }) {
+            Text("Next Node")
+                .font(.title)
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
         .onAppear(){
         }
     }

@@ -3,6 +3,8 @@ import SceneKit
 import SwiftUI
 import simd
 
+var currentNode: String = ""
+
 class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDelegate, CLLocationManagerDelegate {
     
     @IBOutlet var arView: ARSCNView!
@@ -48,6 +50,10 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         configureARSession(for: arView)        // setup AR Session
         addInitialWorldAnchor()
         makeScaleUpNodeList()                  // create UP scale node list: arMapNodes
+    }
+    
+    func getCurrentNode() -> SCNNode? {
+        return self.currentNode
     }
     
     func startPathFinding() {
@@ -342,3 +348,4 @@ extension SCNVector3 {
         return sqrt(dx * dx + dy * dy + dz * dz)
     }
 }
+
