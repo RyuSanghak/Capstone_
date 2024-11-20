@@ -10,18 +10,10 @@ struct ARView: View {
                 VStack {
                     ARViewContainer(viewModel: viewModel)
                         .edgesIgnoringSafeArea(.all)
-                    Button(action: {
-                        viewModel.startPathFinding()
-                    }) {
-                        Text("set initial position")
-                            .padding()
-                            .background(Color.black)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
                 }
                 .onAppear() {
                     viewModel.startARSession()
+                    viewModel.startPathFinding()
                 }
                 .onDisappear() {
                     viewModel.resetARSession()

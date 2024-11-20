@@ -4,11 +4,14 @@ import SwiftUI
 import simd
 import CoreLocation
 
+
+
 class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDelegate, CLLocationManagerDelegate {
     
     @IBOutlet var arView: ARSCNView!
 
     var campNaviViewModel: CampusNavigatorViewModel
+    var mapViewModel: MapViewModel
     
     @Published var arConfiguration: ARWorldTrackingConfiguration = ARWorldTrackingConfiguration()
     
@@ -28,8 +31,9 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     var arrowNode: SCNNode?
     
     
-    init(campusNavigatorViewModel: CampusNavigatorViewModel) {
+    init(campusNavigatorViewModel: CampusNavigatorViewModel, mapViewModel: MapViewModel) {
         self.campNaviViewModel = campusNavigatorViewModel
+        self.mapViewModel = mapViewModel
         super.init()
         setupConfiguration()
         setupLocationManager()
@@ -315,10 +319,15 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
                 print("User has reached the end of the path.")
             }
             if let nextNodeIndex = pathList.firstIndex(of: currentNode.name!), nextNodeIndex + 1 < pathList.count {
-                //deletePointsBelowNode()
+                self.currentNodeIndex += 1
                 self.currentNode = userPathNodeList[nextNodeIndex+1]
                 addPointsBelowNode()
                 print("Next Node: \(self.currentNode?.name ?? "")")
+                
+                mapViewModel.currentNodeIndex = self.currentNodeIndex
+                mapViewModel.currentNode = self.currentNode?.name
+                mapViewModel.nextNodeButtonPressed()
+                
             }
         }
     }
