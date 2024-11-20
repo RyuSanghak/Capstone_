@@ -301,8 +301,15 @@ let FHnodes: [nodes] = [
     nodes(name: "f2n37", x: -4.648, y: 0.722, z: 0.21),
     nodes(name: "f2n38", x: -5.755, y: 0.722, z: 0.21),
     nodes(name: "f2n39", x: -5.755, y: -0.269, z: 0.21),
-    nodes(name: "f2n40", x: 2.923, y: -2.117, z: 0.21)
-]
+    nodes(name: "f2n40", x: 2.923, y: -2.117, z: 0.21),
+    //Second Floor Test Nodes
+    nodes(name: "F1toF2_1", x: -4.648, y: 0.722, z: 0.2),
+    nodes(name: "F1toF2_2", x: -5.755, y: 0.722, z: 0.2),
+    nodes(name: "F1toF2_3", x: -5.755, y: -0.269, z: 0.2)
+       
+    ]
+
+
 
 
 let TestNodes: [nodes] = [

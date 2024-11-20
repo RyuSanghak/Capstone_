@@ -9,7 +9,7 @@ import SwiftUI
 import SceneKit
 
 struct MapView: View {
-    @ObservedObject var viewModel: MapViewModel
+    @EnvironmentObject var viewModel: MapViewModel
 
     var body: some View {
         VStack{

@@ -9,6 +9,8 @@ class MapViewModel: ObservableObject {
     
     @Published var scene: SCNScene?
     
+    var currentNode: String?
+    var currentNodeIndex: Int = 0
     
     init() {
         //loadMaps()
@@ -154,7 +156,7 @@ class MapViewModel: ObservableObject {
     }
     
     // Function to simulate updating currentNode
-    func updateCurrentNode(newNode: String) {
+    func updateCurrentNode() {
         currentNode = pathList[currentNodeIndex] // Update the currentNode value
         print("!!!!!!Current Node is: ", currentNode) // Print currentNode
     }
@@ -182,7 +184,6 @@ class MapViewModel: ObservableObject {
     }
     
     func loadScene() {
-
         guard let selectedMap = selectedMap else {
             scene = nil
             print("scene nil")
@@ -194,7 +195,7 @@ class MapViewModel: ObservableObject {
         DispatchQueue.main.async {
             self.scene = mapScene
         }
-        updateCurrentNode(newNode: currentNode)
+        updateCurrentNode()
     }
     
     

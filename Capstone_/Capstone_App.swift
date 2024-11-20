@@ -8,10 +8,12 @@ struct Capstone_App: App {
     @StateObject var arViewModel: ARViewModel
     
     init() {
-            let campNaviVM = CampusNavigatorViewModel()
-            _campNaviViewModel = StateObject(wrappedValue: campNaviVM)
-            _arViewModel = StateObject(wrappedValue: ARViewModel(campusNavigatorViewModel: campNaviVM))
-        }
+        let campNaviVM = CampusNavigatorViewModel()
+        let mapVM = MapViewModel()
+        _campNaviViewModel = StateObject(wrappedValue: campNaviVM)
+        _mapViewModel = StateObject(wrappedValue: mapVM)
+        _arViewModel = StateObject(wrappedValue: ARViewModel(campusNavigatorViewModel: campNaviVM, mapViewModel: mapVM))
+    }
     
     var body: some Scene {
         WindowGroup {

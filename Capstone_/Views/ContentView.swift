@@ -12,12 +12,14 @@ struct ContentView: View {
             
             VStack{
                 
-                ARView(viewModel: arViewModel)
-                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.6)
+                ARView()
+                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.7)
+                    .environmentObject(arViewModel)
                 
-                MapView(viewModel: mapViewModel) // navigate to MapView
-                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.4)
+                MapView() // navigate to MapView
+                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.3)
                     .transition(.opacity)
+                    .environmentObject(mapViewModel)
                 
             }
         }

@@ -67,7 +67,8 @@ func findPath(buildingName: String, start: String, end: String) {
     var nodeList: [MyNode] = []
     pathList.removeAll()
     
-
+    pathList.removeAll()
+    
     //빌딩별로 데이터 셋업
     var selectedNodes: [nodes] {
         switch buildingName {
