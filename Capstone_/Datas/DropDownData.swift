@@ -41,6 +41,14 @@ public let healthScienceBuildings = [
         "Kobacker Center"
         ]
 
+public let FH_TEST_START = [
+    "Room 1880"
+    ]
+
+public let FH_TEST_END = [
+    "Room 2880"
+]
+
 //87 rooms
 public let FH_START = [
         //first floor

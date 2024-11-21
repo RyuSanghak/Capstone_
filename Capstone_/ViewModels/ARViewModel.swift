@@ -326,6 +326,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
                 
                 mapViewModel.currentNodeIndex = self.currentNodeIndex
                 mapViewModel.currentNode = self.currentNode?.name
+                mapViewModel.loadMaps(buildingName: campNaviViewModel.getBuildingName())
                 mapViewModel.nextNodeButtonPressed()
                 
             }

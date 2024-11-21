@@ -12,21 +12,69 @@ class MapViewModel: ObservableObject {
     var currentNode: String?
     var currentNodeIndex: Int = 0
     
-    init() {
-        //loadMaps()
+    var userPathNodeList: [SCNNode] = []
+    var filteredNodeList: [nodes] = []
+        
+    init(){
     }
     
     func loadMaps(buildingName: String) {
-        
-        if buildingName == "Memorial Field House" {
-            maps = [
-                IndoorMap(name: "MFH_1", filename: "MFH_1.usdz"),
-                IndoorMap(name: "MFH_2", filename: "MFH_2.usdz"),
-                
-            ]
-            selectedMap = maps.first // init selectedMap
+                // 매번 filteredNodeList를 초기화하여 값이 쌓이지 않도록 합니다.
+                filteredNodeList = []
+
+                // FHnodes에서 1층에 있는 모든 노드들 필터해서 filterNodes에 삽이
+        let filteredNodes = FHnodes.filter {
+            $0.name.prefix(3) == "f1n" ||
+            $0.name.prefix(6) == "Room 1" ||
+            $0.name.prefix(10) == "Restroom 1" ||
+            $0.name.prefix(4) == "Door" ||
+            $0.name.prefix(8) == "Stair C1" ||
+            $0.name.prefix(11) == "Elevator C1"
         }
-    }
+        
+                // 필터된 노드를 filteredNodeList에 추가
+                for node in filteredNodes {
+                    filteredNodeList.append(node)
+                }
+                
+                // 특정 건물 이름에 대해서만 맵을 설정
+                if buildingName == "Memorial Field House" {
+                    maps = [  // maps 배열을 초기화
+                            IndoorMap(name: "MFH_1", filename: "MFH_1.usdz"),
+                            IndoorMap(name: "MFH_2", filename: "MFH_2.usdz"),
+                        ]
+                    
+                    // filteredNodeList와 currentNodeName을 비교하여 맵 선택
+                    var mapFound = false
+
+                    for node in filteredNodeList {
+                        if node.name == currentNode {
+                            selectedMap = maps[0]  // 일치하면 첫 번째 맵 선택
+                            print("일치")
+                            mapFound = true
+                            break  // 일치하면 루프 종료
+                        }
+                    }
+
+                    // 일치하는 맵이 없으면 두 번째 맵 선택
+                    if !mapFound {
+                        selectedMap = maps[1]
+                        print("불일치")
+                    }
+
+                    print("선택된 맵: \(selectedMap?.name ?? "맵 없음")")
+                    
+                    // 상태 변화를 알리기
+                    DispatchQueue.main.async {
+                        self.objectWillChange.send()
+                    }
+                        
+                    // Debugging: currentNodeName과 filteredNodeList의 이름들 출력
+                    print("Current Node Name: \(currentNode ?? "No current node")")
+                    let nodeNames = filteredNodeList.map { $0.name }
+                    print("Filtered Node Names: \(nodeNames)")
+                }
+            }
     
     func createMapScene(mapName: String) -> SCNScene {
         guard let selectedMap = selectedMap else {
@@ -148,7 +196,7 @@ class MapViewModel: ObservableObject {
     // Function to be called when the button is pressed to go to the next node
     func nextNodeButtonPressed() {
         // Increment the index to go to the next node
-        if currentNodeIndex < pathList.count - 1 {
+        if currentNodeIndex < pathList.count {
             loadScene() // Reload the scene to reflect the change
         }
     }
@@ -193,7 +241,8 @@ class MapViewModel: ObservableObject {
         DispatchQueue.main.async {
             self.scene = mapScene
         }
-        updateCurrentNode()
+        print("scene loaded")
+       // updateCurrentNode()
     }
     
     
