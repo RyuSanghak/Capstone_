@@ -144,13 +144,11 @@ class MapViewModel: ObservableObject {
         }
     }
     
-    var currentNodeIndex: Int = 0
     
     // Function to be called when the button is pressed to go to the next node
     func nextNodeButtonPressed() {
         // Increment the index to go to the next node
         if currentNodeIndex < pathList.count - 1 {
-            currentNodeIndex += 1
             loadScene() // Reload the scene to reflect the change
         }
     }

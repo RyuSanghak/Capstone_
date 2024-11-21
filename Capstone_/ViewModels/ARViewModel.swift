@@ -6,8 +6,6 @@ import CoreLocation
 
 
 
-var currentNode: String = ""
-
 class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDelegate, CLLocationManagerDelegate {
     
     @IBOutlet var arView: ARSCNView!
@@ -115,10 +113,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     func startARSession() {
         configureARSession(for: arView)        // setup AR Session
         makeScaleUpNodeList()                  // create UP scale node list: arMapNodes
-    }
-    
-    func getCurrentNode() -> SCNNode? {
-        return self.currentNode
     }
     
     func startPathFinding() {
