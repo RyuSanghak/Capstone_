@@ -47,10 +47,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
 
     }
     
-    func getCurrentNode() -> SCNNode? {
-        return self.currentNode
-    }
-    
     func configureARSession(for arView: ARSCNView) {
         self.arView = arView
         arView.delegate = self
@@ -102,7 +98,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         self.initialAnchor = nil
         self.distanceTextNode = nil
         self.userPathNodeList.removeAll()
-        self.isSessionStarted = false
+        //self.isSessionStarted = false
         
         //arView.session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
         
@@ -122,6 +118,8 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         addPathPoints()
         addArrowNodeToScene()
         
+        printARText(text: "Fuck You!")
+
     }
     
     func makeScaleUpNodeList() {
@@ -147,6 +145,54 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         print("World anchor added at position \(position)")
     }
     
+    func printARText(text: String) {
+            
+        let textGeometry = SCNText(string: text, extrusionDepth: 0.1)
+        textGeometry.firstMaterial?.diffuse.contents = UIColor.white
+        textGeometry.font = UIFont.systemFont(ofSize: 2)
+        textGeometry.flatness = 0.1
+        
+        let textNode = SCNNode(geometry: textGeometry)
+        
+        let scale: Float = 0.1
+        textNode.scale = SCNVector3(scale, scale, scale)
+        
+        // place the text in front of the camera and set position on the screen
+        if let cameraNode = arView.pointOfView {
+            var translation = matrix_identity_float4x4
+            translation.columns.3.z = -10
+            //translation.columns.3.y =
+            let textNodeTransform = simd_mul(cameraNode.simdTransform, translation)
+            textNode.simdTransform = textNodeTransform
+
+            // set the text always look at user.
+            let billboardConstraint = SCNBillboardConstraint()
+            billboardConstraint.freeAxes = .all
+            textNode.constraints = [billboardConstraint]
+        }
+        
+        arView.scene.rootNode.addChildNode(textNode)
+    }
+    
+    func showArrivalAlert() {
+        // UIAlertController 생성
+        let alertController = UIAlertController(
+            title: "Arrival",
+            message: "You have reached your destination.",
+            preferredStyle: .alert
+        )
+        // 확인 버튼 추가
+        alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        
+        // 현재 활성화된 UIWindowScene의 RootViewController 가져오기
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
+            rootViewController.present(alertController, animated: true, completion: nil)
+        }
+    }
+
+    
+    
     func rotationMatrix(yawDegrees: Float) -> simd_float4x4 {
         let yawRadians = yawDegrees * Float.pi / 180.0
         var matrix = matrix_identity_float4x4
@@ -161,8 +207,14 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         guard let initialNode = initialNode else { print("Couldn't find initial node"); return }
         for pathNodeName in pathList {
             if let pathNodeData = arMapNodes.first(where: { $0.name == pathNodeName }) {
+                
                 let relativeX = pathNodeData.x - initialNode.x
-                let relativeY = 0.0
+                var relativeY = 0.0
+                
+                if (pathNodeData.y == 0.21) { // if the node is in 2nd floor
+                    relativeY = 5.0
+                }
+                
                 let relativeZ = -(pathNodeData.y - initialNode.y)
                 
                 let node = SCNNode()
@@ -197,8 +249,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
                 node.isHidden = true
             }
         }
-        
-        
     }
     
     func addPointsBelowNode() {
@@ -316,7 +366,9 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         
         if distance < 0.5 {
             if currentNode == userPathNodeList.last {
-                print("User has reached the end of the path.")
+                printARText(text: "Fuck You!")
+                showArrivalAlert()
+                arView.session.pause()
             }
             if let nextNodeIndex = pathList.firstIndex(of: currentNode.name!), nextNodeIndex + 1 < pathList.count {
                 self.currentNodeIndex += 1
@@ -326,6 +378,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
                 
                 mapViewModel.currentNodeIndex = self.currentNodeIndex
                 mapViewModel.currentNode = self.currentNode?.name
+                mapViewModel.loadMaps(buildingName: campNaviViewModel.getBuildingName())
                 mapViewModel.nextNodeButtonPressed()
                 
             }

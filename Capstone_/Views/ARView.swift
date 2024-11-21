@@ -16,6 +16,7 @@ struct ARView: View {
                     viewModel.startPathFinding()
                 }
                 .onDisappear() {
+                    viewModel.isSessionStarted = false
                     viewModel.resetARSession()
                 }
             } else {
