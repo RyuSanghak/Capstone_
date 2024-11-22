@@ -70,9 +70,9 @@ class MapViewModel: ObservableObject {
                     }
                         
                     // Debugging: currentNodeName과 filteredNodeList의 이름들 출력
-                    print("Current Node Name: \(currentNode ?? "No current node")")
+                    //print("Current Node Name: \(currentNode ?? "No current node")")
                     let nodeNames = filteredNodeList.map { $0.name }
-                    print("Filtered Node Names: \(nodeNames)")
+                    //print("Filtered Node Names: \(nodeNames)")
                 }
             }
     

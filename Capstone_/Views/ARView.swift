@@ -10,6 +10,20 @@ struct ARView: View {
                 VStack {
                     ARViewContainer(viewModel: viewModel)
                         .edgesIgnoringSafeArea(.all)
+                    Button(action: {
+                        viewModel.rootMoveleft() // 세션 시작 상태를 표시하기 위한 변수
+                    }) {
+                        Text("left")
+                            .font(.title)
+                    }
+                    .padding()
+                    Button(action: {
+                        viewModel.rootMoveright() // 세션 시작 상태를 표시하기 위한 변수
+                    }) {
+                        Text("right")
+                            .font(.title)
+                    }
+                    .padding()
                 }
                 .onAppear() {
                     viewModel.startARSession()

@@ -55,7 +55,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         
         arView.debugOptions = [
             //ARSCNDebugOptions.showFeaturePoints,
-            //ARSCNDebugOptions.showWorldOrigin,
+            ARSCNDebugOptions.showWorldOrigin,
             //ARSCNDebugOptions.showPhysicsShapes
         ]
         
@@ -117,8 +117,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         addAllPathNode()
         addPathPoints()
         addArrowNodeToScene()
-        
-        printARText(text: "Fuck You!")
 
     }
     
@@ -210,17 +208,26 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
                 
                 let relativeX = pathNodeData.x - initialNode.x
                 var relativeY = 0.0
-                
-                if (pathNodeData.y == 0.21) { // if the node is in 2nd floor
-                    relativeY = 5.0
-                }
-                
                 let relativeZ = -(pathNodeData.y - initialNode.y)
+                
+                
+                if initialNode.z == 1.18083 { // if the initial node is 2nd Floor
+                    if pathNodeData.z == 1.18083 { // hight(y) value of 2nd floor node has 0
+                        relativeY = 0.0
+                    } else { // y value of 1st floor is -5
+                        relativeY = -5.0
+                    }
+                } else { // if the initial node is 1st Floor
+                    if pathNodeData.z == 1.18083 { // y value of 2nd floor has 5
+                        relativeY = 5.0
+                    } else { // y value of 1st floor has 0
+                        relativeY = 0.0
+                    }
+                }
                 
                 let node = SCNNode()
                 node.name = pathNodeData.name
                 node.position = SCNVector3(relativeX, Float(relativeY), relativeZ)
-                node.position.y = 0.0
                 
                 let sphere = SCNSphere(radius: 0.1)
                 sphere.firstMaterial?.diffuse.contents = UIColor.blue
@@ -366,7 +373,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         
         if distance < 0.5 {
             if currentNode == userPathNodeList.last {
-                printARText(text: "Fuck You!")
                 showArrivalAlert()
                 arView.session.pause()
             }
@@ -444,25 +450,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
     }
 
-    func updateNodeScales(){
-        guard let currentNode = currentNode else { return }
-        guard let currentFrame = arView?.session.currentFrame else { return }
-        
-        let cameraPosition = SCNVector3(
-            currentFrame.camera.transform.columns.3.x,
-            currentFrame.camera.transform.columns.3.y,
-            currentFrame.camera.transform.columns.3.z
-        )
-        
-        let nodePosition = currentNode.worldPosition
-        
-        let distance = cameraPosition.distance(to: nodePosition)
-        //updateDistanceText(distance: distance)
-        let minScale: Float = 0.05
-        let maxScale: Float = 0.3
-        let scaleFactor = max(minScale, min(maxScale, 1.0 / distance))
-        currentNode.scale = SCNVector3(scaleFactor, scaleFactor, scaleFactor)
-    }
 }
 
 extension SCNVector3 {
@@ -569,5 +556,16 @@ extension SCNNode {
             max.y - min.y,
             max.z - min.z
         )
+    }
+}
+
+extension ARViewModel {
+    func rootMoveleft() {
+        let rootNode = arView.scene.rootNode
+        rootNode.position.x -= 0.1
+    }
+    func rootMoveright() {
+        let rootNode = arView.scene.rootNode
+        rootNode.position.x += 0.1
     }
 }
