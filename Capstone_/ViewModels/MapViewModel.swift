@@ -13,17 +13,21 @@ class MapViewModel: ObservableObject {
     var currentNodeIndex: Int = 0
     
     var userPathNodeList: [SCNNode] = []
-    var filteredNodeList: [nodes] = []
+    var F1_filteredNodeList: [nodes] = []
+    var F2_filteredNodeList: [nodes] = []
+    
+    var mapFound: Bool = false
+    var mapIndicator: String?
         
     init(){
     }
     
     func loadMaps(buildingName: String) {
                 // 매번 filteredNodeList를 초기화하여 값이 쌓이지 않도록 합니다.
-                filteredNodeList = []
-
-                // FHnodes에서 1층에 있는 모든 노드들 필터해서 filterNodes에 삽이
-        let filteredNodes = FHnodes.filter {
+        F1_filteredNodeList = []
+        F2_filteredNodeList = []
+        
+        let F1_filteredNodes = FHnodes.filter {
             $0.name.prefix(3) == "f1n" ||
             $0.name.prefix(6) == "Room 1" ||
             $0.name.prefix(10) == "Restroom 1" ||
@@ -31,11 +35,21 @@ class MapViewModel: ObservableObject {
             $0.name.prefix(8) == "Stair C1" ||
             $0.name.prefix(11) == "Elevator C1"
         }
+        for node in F1_filteredNodes {
+            F1_filteredNodeList.append(node)
+        }
         
-                // 필터된 노드를 filteredNodeList에 추가
-                for node in filteredNodes {
-                    filteredNodeList.append(node)
-                }
+        let F2_filteredNodes = FHnodes.filter {
+            $0.name.prefix(3) == "f2n" ||
+            $0.name.prefix(6) == "Room 2" ||
+            $0.name.prefix(10) == "Restroom 2" ||
+            $0.name.prefix(8) == "Stair C2" ||
+            $0.name.prefix(11) == "Elevator C2"
+        }
+        for node in F2_filteredNodes {
+            F2_filteredNodeList.append(node)
+        }
+        
                 
                 // 특정 건물 이름에 대해서만 맵을 설정
                 if buildingName == "Memorial Field House" {
@@ -45,9 +59,9 @@ class MapViewModel: ObservableObject {
                         ]
                     
                     // filteredNodeList와 currentNodeName을 비교하여 맵 선택
-                    var mapFound = false
+                    // var mapFound = false
 
-                    for node in filteredNodeList {
+                    for node in F1_filteredNodeList {
                         if node.name == currentNode {
                             selectedMap = maps[0]  // 일치하면 첫 번째 맵 선택
                             print("일치")
@@ -55,11 +69,14 @@ class MapViewModel: ObservableObject {
                             break  // 일치하면 루프 종료
                         }
                     }
-
-                    // 일치하는 맵이 없으면 두 번째 맵 선택
-                    if !mapFound {
-                        selectedMap = maps[1]
-                        print("불일치")
+                    
+                    for node in F2_filteredNodeList {
+                        if node.name == currentNode {
+                            selectedMap = maps[1]  // 일치하면 첫 번째 맵 선택
+                            print("불일치")
+                            mapFound = false
+                            break  // 일치하면 루프 종료
+                        }
                     }
 
                     print("선택된 맵: \(selectedMap?.name ?? "맵 없음")")
@@ -71,8 +88,8 @@ class MapViewModel: ObservableObject {
                         
                     // Debugging: currentNodeName과 filteredNodeList의 이름들 출력
                     print("Current Node Name: \(currentNode ?? "No current node")")
-                    let nodeNames = filteredNodeList.map { $0.name }
-                    print("Filtered Node Names: \(nodeNames)")
+                    //let nodeNames = filteredNodeList.map { $0.name }
+                    //print("Filtered Node Names: \(nodeNames)")
                 }
             }
     
@@ -87,18 +104,61 @@ class MapViewModel: ObservableObject {
         if let mapNode = loadUSDZModel(named: selectedMap.name){
             scene.rootNode.addChildNode(mapNode)
             
+            if mapFound {
             for nodeName in pathList {
-                if let node = FHnodes.first(where: { $0.name == nodeName }) {
+                if let node = F1_filteredNodeList.first(where: { $0.name == nodeName }) {
                     let sphereNode = createSphereNode(position: SCNVector3(x: node.x, y: node.y, z: node.z))
                     scene.rootNode.addChildNode(sphereNode)
-                    
-                } else {
-                    print("Error: Could not find node with name \(nodeName)")
                 }
-            }
+                    
+                    
+                    // SCNText로 3D 텍스트 객체 생성
+                    if mapFound == true {
+                        mapIndicator = "F1"
+                    }
+                    else if mapFound == false {
+                        mapIndicator = "F2"
+                    }
+                    
+                    let mapIndicatorText = mapIndicator ?? "No Map" // 기본값으로 "No Map" 설정
+                    let textGeometry = SCNText(string: mapIndicatorText, extrusionDepth: 0.1)
+                    textGeometry.font = UIFont.systemFont(ofSize: 1.2)
+                    textGeometry.firstMaterial?.diffuse.contents = UIColor.gray
+                    let textNode = SCNNode(geometry: textGeometry)
+                    textNode.position = SCNVector3(x: -8, y: 6, z: 0.1)
+                    scene.rootNode.addChildNode(textNode)
+                
+                }
+            } else {
+                for nodeName in pathList {
+                    if let node = F2_filteredNodeList.first(where: { $0.name == nodeName }) {
+                        let sphereNode = createSphereNode(position: SCNVector3(x: node.x, y: node.y, z: node.z))
+                        scene.rootNode.addChildNode(sphereNode)
+                    }
+                        
+                        
+                        // SCNText로 3D 텍스트 객체 생성
+                        if mapFound == true {
+                            mapIndicator = "F1"
+                        }
+                        else if mapFound == false {
+                            mapIndicator = "F2"
+                        }
+                        
+                        let mapIndicatorText = mapIndicator ?? "No Map" // 기본값으로 "No Map" 설정
+                        let textGeometry = SCNText(string: mapIndicatorText, extrusionDepth: 0.1)
+                        textGeometry.font = UIFont.systemFont(ofSize: 1.2)
+                        textGeometry.firstMaterial?.diffuse.contents = UIColor.gray
+                        let textNode = SCNNode(geometry: textGeometry)
+                        textNode.position = SCNVector3(x: -8, y: 6, z: 0.1)
+                        scene.rootNode.addChildNode(textNode)
+                    
+                    }
+                }
         }
         
-        // Draw lines only between consecutive nodes in pathList
+        /*
+        // 선그리기
         for i in 0..<(pathList.count) {
             if i+1 < pathList.count{
                 let fromNodeName = pathList[i]
@@ -113,6 +173,34 @@ class MapViewModel: ObservableObject {
             }
             } else {
                 print("Error: ")
+            }
+        }
+         */
+        
+        // 선 연결 로직
+        for i in 0..<(pathList.count) {
+            if i + 1 < pathList.count {
+                let fromNodeName = pathList[i]
+                let toNodeName = pathList[i + 1]
+                
+                // 1층과 2층 구분에 따라 노드 리스트 선택
+                if mapFound {
+                    // 1층 노드 리스트 사용
+                    if let fromNode = F1_filteredNodeList.first(where: { $0.name == fromNodeName }),
+                       let toNode = F1_filteredNodeList.first(where: { $0.name == toNodeName }) {
+                        let lineNode = createLineNode(from: SCNVector3(x: fromNode.x, y: fromNode.y, z: fromNode.z),
+                                                      to: SCNVector3(x: toNode.x, y: toNode.y, z: toNode.z))
+                        scene.rootNode.addChildNode(lineNode)
+                    }
+                } else {
+                    // 2층 노드 리스트 사용
+                    if let fromNode = F2_filteredNodeList.first(where: { $0.name == fromNodeName }),
+                       let toNode = F2_filteredNodeList.first(where: { $0.name == toNodeName }) {
+                        let lineNode = createLineNode(from: SCNVector3(x: fromNode.x, y: fromNode.y, z: fromNode.z),
+                                                      to: SCNVector3(x: toNode.x, y: toNode.y, z: toNode.z))
+                        scene.rootNode.addChildNode(lineNode)
+                    }
+                }
             }
         }
         
@@ -209,20 +297,30 @@ class MapViewModel: ObservableObject {
     
     // Update the color of the current node (based on currentNodeIndex)
     func updateNodeColor(scene: SCNScene) {
-        // Reset color of all nodes in pathList to blue
-//        for i in 0..<pathList.count {
-//            if let node = FHnodes.first(where: { $0.name == pathList[i] }) {
-//                let sphereNode = createSphereNode(position: SCNVector3(x: node.x, y: node.y, z: node.z))
-//                sphereNode.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-//                scene.rootNode.addChildNode(sphereNode)
-//            }
-//        }
+        // 1. 먼저 현재 씬에서 기존에 추가된 노드들(구체 노드) 제거
+        scene.rootNode.enumerateChildNodes { (node, _) in
+            if node.geometry is SCNSphere {
+                node.removeFromParentNode()
+            }
+        }
         
-        // Update color of the current node to red
+        // 2. 층에 따라 적절한 노드 리스트 선택
+        let nodeList = mapFound ? F1_filteredNodeList : F2_filteredNodeList
+        
+        // 3. 현재 경로의 모든 노드 색상 초기화 (파란색)
+        for nodeName in pathList {
+            if let node = nodeList.first(where: { $0.name == nodeName }) {
+                let sphereNode = createSphereNode(position: SCNVector3(x: node.x, y: node.y, z: node.z))
+                sphereNode.geometry?.firstMaterial?.diffuse.contents = UIColor.gray
+                scene.rootNode.addChildNode(sphereNode)
+            }
+        }
+        
+        // 4. 현재 노드 색상 변경 (빨간색)
         if currentNodeIndex < pathList.count {
             let currentNodeName = pathList[currentNodeIndex]
-            if let node = FHnodes.first(where: { $0.name == currentNodeName }) {
-                let sphereNode = createSphereNode(position: SCNVector3(x: node.x, y: node.y, z: node.z))
+            if let currentNode = nodeList.first(where: { $0.name == currentNodeName }) {
+                let sphereNode = createSphereNode(position: SCNVector3(x: currentNode.x, y: currentNode.y, z: currentNode.z))
                 sphereNode.geometry?.firstMaterial?.diffuse.contents = UIColor.red
                 scene.rootNode.addChildNode(sphereNode)
             }

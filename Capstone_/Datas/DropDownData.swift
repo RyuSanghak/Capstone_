@@ -42,11 +42,14 @@ public let healthScienceBuildings = [
         ]
 
 public let FH_TEST_START = [
-    "Room 1880"
+    "Restroom 1020",
+    "Room 2030"
     ]
 
 public let FH_TEST_END = [
-    "Room 2880"
+    "Room 2030",
+    "Room 2295",
+    "Restroom 1020"
 ]
 
 //87 rooms
