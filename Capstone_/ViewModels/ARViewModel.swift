@@ -47,10 +47,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
 
     }
     
-    func getCurrentNode() -> SCNNode? {
-        return self.currentNode
-    }
-    
     func configureARSession(for arView: ARSCNView) {
         self.arView = arView
         arView.delegate = self
@@ -59,7 +55,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         
         arView.debugOptions = [
             //ARSCNDebugOptions.showFeaturePoints,
-            //ARSCNDebugOptions.showWorldOrigin,
+            ARSCNDebugOptions.showWorldOrigin,
             //ARSCNDebugOptions.showPhysicsShapes
         ]
         
@@ -76,7 +72,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
             coachingOverlay.topAnchor.constraint(equalTo: arView.topAnchor),
             coachingOverlay.bottomAnchor.constraint(equalTo: arView.bottomAnchor)
         ])
-        arView.session.run(arConfiguration)
+        arView.session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
         
     }
     
@@ -101,8 +97,8 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         self.initialNode = nil
         self.initialAnchor = nil
         self.distanceTextNode = nil
+        self.arrowNode = nil
         self.userPathNodeList.removeAll()
-        self.isSessionStarted = false
         
         //arView.session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
         
@@ -121,15 +117,16 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         addAllPathNode()
         addPathPoints()
         addArrowNodeToScene()
-        
+
     }
     
     func makeScaleUpNodeList() {
-        for node in FHnodes {
-            let arNode = nodes(name: node.name, x: scaleFactor * node.x, y: scaleFactor * node.y, z: scaleFactor * node.z)
-            arMapNodes.append(arNode)
+        if campNaviViewModel.selectedBuilding == "Memorial Field House" {
+            for node in FHnodes {
+                let arNode = nodes(name: node.name, x: scaleFactor * node.x, y: scaleFactor * node.y, z: scaleFactor * node.z)
+                arMapNodes.append(arNode)
+            }
         }
-        
     }
     
     func addInitialWorldAnchor() {
@@ -147,6 +144,54 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         print("World anchor added at position \(position)")
     }
     
+    func printARText(text: String) {
+            
+        let textGeometry = SCNText(string: text, extrusionDepth: 0.1)
+        textGeometry.firstMaterial?.diffuse.contents = UIColor.white
+        textGeometry.font = UIFont.systemFont(ofSize: 2)
+        textGeometry.flatness = 0.1
+        
+        let textNode = SCNNode(geometry: textGeometry)
+        
+        let scale: Float = 0.1
+        textNode.scale = SCNVector3(scale, scale, scale)
+        
+        // place the text in front of the camera and set position on the screen
+        if let cameraNode = arView.pointOfView {
+            var translation = matrix_identity_float4x4
+            translation.columns.3.z = -10
+            //translation.columns.3.y =
+            let textNodeTransform = simd_mul(cameraNode.simdTransform, translation)
+            textNode.simdTransform = textNodeTransform
+
+            // set the text always look at user.
+            let billboardConstraint = SCNBillboardConstraint()
+            billboardConstraint.freeAxes = .all
+            textNode.constraints = [billboardConstraint]
+        }
+        
+        arView.scene.rootNode.addChildNode(textNode)
+    }
+    
+    func showArrivalAlert() {
+        // UIAlertController 생성
+        let alertController = UIAlertController(
+            title: "Arrival",
+            message: "You have reached your destination.",
+            preferredStyle: .alert
+        )
+        // 확인 버튼 추가
+        alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        
+        // 현재 활성화된 UIWindowScene의 RootViewController 가져오기
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
+            rootViewController.present(alertController, animated: true, completion: nil)
+        }
+    }
+
+    
+    
     func rotationMatrix(yawDegrees: Float) -> simd_float4x4 {
         let yawRadians = yawDegrees * Float.pi / 180.0
         var matrix = matrix_identity_float4x4
@@ -161,14 +206,29 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         guard let initialNode = initialNode else { print("Couldn't find initial node"); return }
         for pathNodeName in pathList {
             if let pathNodeData = arMapNodes.first(where: { $0.name == pathNodeName }) {
+                
                 let relativeX = pathNodeData.x - initialNode.x
-                let relativeY = 0.0
+                var relativeY = 0.0
                 let relativeZ = -(pathNodeData.y - initialNode.y)
+                
+                
+                if initialNode.z == 1.18083 { // if the initial node is 2nd Floor
+                    if pathNodeData.z == 1.18083 { // hight(y) value of 2nd floor node has 0
+                        relativeY = 0.0
+                    } else { // y value of 1st floor is -5
+                        relativeY = -5.0
+                    }
+                } else { // if the initial node is 1st Floor
+                    if pathNodeData.z == 1.18083 { // y value of 2nd floor has 5
+                        relativeY = 5.0
+                    } else { // y value of 1st floor has 0
+                        relativeY = 0.0
+                    }
+                }
                 
                 let node = SCNNode()
                 node.name = pathNodeData.name
                 node.position = SCNVector3(relativeX, Float(relativeY), relativeZ)
-                node.position.y = 0.0
                 
                 let sphere = SCNSphere(radius: 0.1)
                 sphere.firstMaterial?.diffuse.contents = UIColor.blue
@@ -197,8 +257,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
                 node.isHidden = true
             }
         }
-        
-        
     }
     
     func addPointsBelowNode() {
@@ -316,7 +374,8 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         
         if distance < 0.5 {
             if currentNode == userPathNodeList.last {
-                print("User has reached the end of the path.")
+                showArrivalAlert()
+                arView.session.pause()
             }
             if let nextNodeIndex = pathList.firstIndex(of: currentNode.name!), nextNodeIndex + 1 < pathList.count {
                 self.currentNodeIndex += 1
@@ -392,25 +451,6 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
     }
 
-    func updateNodeScales(){
-        guard let currentNode = currentNode else { return }
-        guard let currentFrame = arView?.session.currentFrame else { return }
-        
-        let cameraPosition = SCNVector3(
-            currentFrame.camera.transform.columns.3.x,
-            currentFrame.camera.transform.columns.3.y,
-            currentFrame.camera.transform.columns.3.z
-        )
-        
-        let nodePosition = currentNode.worldPosition
-        
-        let distance = cameraPosition.distance(to: nodePosition)
-        //updateDistanceText(distance: distance)
-        let minScale: Float = 0.05
-        let maxScale: Float = 0.3
-        let scaleFactor = max(minScale, min(maxScale, 1.0 / distance))
-        currentNode.scale = SCNVector3(scaleFactor, scaleFactor, scaleFactor)
-    }
 }
 
 extension SCNVector3 {
@@ -443,11 +483,11 @@ extension ARViewModel {
    }
     
     func isFacingNorth(threshold: Double = 5.0) -> Bool {
-        return abs(currentHeading) < threshold || abs(currentHeading - 350) < threshold
+        return abs(currentHeading) < threshold || abs(currentHeading - 360) < threshold
     }
 }
 
-extension ARViewModel {
+extension ARViewModel { // add arrow node
     func loadArrowModel() -> SCNNode? {
         if let scene = SCNScene(named: "arrow.usdz") {
             let arrowNode = scene.rootNode.clone()
@@ -517,5 +557,16 @@ extension SCNNode {
             max.y - min.y,
             max.z - min.z
         )
+    }
+}
+
+extension ARViewModel {
+    func rootMoveleft() {
+        let rootNode = arView.scene.rootNode
+        rootNode.position.x -= 0.1
+    }
+    func rootMoveright() {
+        let rootNode = arView.scene.rootNode
+        rootNode.position.x += 0.1
     }
 }

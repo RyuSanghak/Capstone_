@@ -101,6 +101,7 @@ class MapViewModel: ObservableObject {
 
         let scene = SCNScene()
         
+        
         if let mapNode = loadUSDZModel(named: selectedMap.name){
             scene.rootNode.addChildNode(mapNode)
             

@@ -36,8 +36,8 @@ struct ContentView: View {
         }
         
     }
-        //.animation(.easeInOut(duration: 1), value: isActive)
 }
+
 
 
 

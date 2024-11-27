@@ -8,6 +8,15 @@ class CampusNavigatorViewModel: ObservableObject {
     @Published var endInput: String?
     @Published var isSplashActive = false
     @Published var path = NavigationPath()
+    
+    
+    var isNavigationEnabled: Bool {
+        selectedCampus != nil &&
+        selectedBuilding != nil &&
+        startInput != nil &&
+        endInput != nil
+    }
+
 
     var filteredBuildings: [String] {
         switch selectedCampus {
@@ -47,6 +56,7 @@ class CampusNavigatorViewModel: ObservableObject {
             return ["Please Select Building First"]
         }
     }
+    
 
     func activateSplash() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
