@@ -47,14 +47,18 @@ struct CampusNavigatorView: View {
                     NavigationLink(destination: ContentView()) {
                         Text("Next")
                             .padding()
-                            .background(.regularMaterial)
-                            .colorScheme(.dark)
-                            .cornerRadius(12)
-                            .font(.largeTitle.bold())
-                            .foregroundColor(.primary)
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
                     }
+                    .padding()
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.regular)
+                    .disabled(!viewModel.isNavigationEnabled) // 비활성화 상태
+                    .tint(viewModel.isNavigationEnabled ? .blue : .gray) // 활성화 시 파란색, 비활성화 시 회색
+                    .animation(.easeInOut(duration: 0.3), value: viewModel.isNavigationEnabled)
                     .environmentObject(mapViewModel)
                     .environmentObject(arViewModel)
+                    
                     .simultaneousGesture(TapGesture().onEnded {
                         // Ensure non-optional values are passed to findPath
                         guard let startInput = viewModel.startInput, let endInput = viewModel.endInput, let selectedBuilding = viewModel.selectedBuilding else {

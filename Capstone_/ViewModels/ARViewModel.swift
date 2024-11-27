@@ -72,7 +72,7 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
             coachingOverlay.topAnchor.constraint(equalTo: arView.topAnchor),
             coachingOverlay.bottomAnchor.constraint(equalTo: arView.bottomAnchor)
         ])
-        arView.session.run(arConfiguration)
+        arView.session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
         
     }
     
@@ -97,8 +97,8 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         self.initialNode = nil
         self.initialAnchor = nil
         self.distanceTextNode = nil
+        self.arrowNode = nil
         self.userPathNodeList.removeAll()
-        //self.isSessionStarted = false
         
         //arView.session.run(arConfiguration, options: [.resetTracking, .removeExistingAnchors])
         
@@ -121,11 +121,12 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     }
     
     func makeScaleUpNodeList() {
-        for node in FHnodes {
-            let arNode = nodes(name: node.name, x: scaleFactor * node.x, y: scaleFactor * node.y, z: scaleFactor * node.z)
-            arMapNodes.append(arNode)
+        if campNaviViewModel.selectedBuilding == "Memorial Field House" {
+            for node in FHnodes {
+                let arNode = nodes(name: node.name, x: scaleFactor * node.x, y: scaleFactor * node.y, z: scaleFactor * node.z)
+                arMapNodes.append(arNode)
+            }
         }
-        
     }
     
     func addInitialWorldAnchor() {
@@ -482,11 +483,11 @@ extension ARViewModel {
    }
     
     func isFacingNorth(threshold: Double = 5.0) -> Bool {
-        return abs(currentHeading) < threshold || abs(currentHeading - 350) < threshold
+        return abs(currentHeading) < threshold || abs(currentHeading - 360) < threshold
     }
 }
 
-extension ARViewModel {
+extension ARViewModel { // add arrow node
     func loadArrowModel() -> SCNNode? {
         if let scene = SCNScene(named: "arrow.usdz") {
             let arrowNode = scene.rootNode.clone()
