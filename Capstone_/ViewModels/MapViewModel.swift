@@ -16,7 +16,7 @@ class MapViewModel: ObservableObject {
     var F1_filteredNodeList: [nodes] = []
     var F2_filteredNodeList: [nodes] = []
     
-    var mapFound: Bool = false
+    @Published var mapFound: Bool = false
     var mapIndicator: String?
         
     init(){
