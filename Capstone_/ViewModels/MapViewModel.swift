@@ -93,6 +93,57 @@ class MapViewModel: ObservableObject {
                 }
             }
     
+    func focusCameraOnPath(scene: SCNScene, pathList: [String]) {
+        // Calculate the bounding box based on pathList nodes
+        var minX = Float.greatestFiniteMagnitude
+        var maxX = -Float.greatestFiniteMagnitude
+        var minY = Float.greatestFiniteMagnitude
+        var maxY = -Float.greatestFiniteMagnitude
+        var minZ = Float.greatestFiniteMagnitude
+        var maxZ = -Float.greatestFiniteMagnitude
+
+        for nodeName in pathList {
+            if let node = FHnodes.first(where: { $0.name == nodeName }) {
+                minX = min(minX, node.x)
+                maxX = max(maxX, node.x)
+                minY = min(minY, node.y)
+                maxY = max(maxY, node.y)
+                minZ = min(minZ, node.z)
+                maxZ = max(maxZ, node.z)
+            }
+        }
+
+        // Calculate the center of the bounding box
+        let centerX = (minX + maxX) / 2
+        let centerY = (minY + maxY) / 2
+        let centerZ = (minZ + maxZ) / 2
+
+        // Calculate the size of the bounding box
+        let sizeX = maxX - minX
+        let sizeY = maxY - minY
+        let sizeZ = maxZ - minZ
+
+        // Create a camera node
+        let camera = SCNCamera()
+        let cameraNode = SCNNode()
+        cameraNode.camera = camera
+        
+        // Position the camera to frame the bounding box
+        let maxSize = max(sizeX, sizeY, sizeZ)
+        cameraNode.position = SCNVector3(centerX, centerY-10, centerZ + Float(maxSize) * 2) // Adjust the Z offset as needed
+
+        // Point the camera at the center of the bounding box
+        cameraNode.look(at: SCNVector3(centerX, centerY, centerZ))
+    
+        // Adjust the camera field of view
+        camera.fieldOfView = 22
+        print(cameraNode.eulerAngles)
+        print("sdalkfjnaslekj")
+        // Add the camera to the scene
+        scene.rootNode.addChildNode(cameraNode)
+    }
+
+    
     func createMapScene(mapName: String) -> SCNScene {
         guard let selectedMap = selectedMap else {
             scene = nil
@@ -336,12 +387,14 @@ class MapViewModel: ObservableObject {
         }
         
         let mapScene = createMapScene(mapName: selectedMap.name)
-       
+        
+        // Focus the camera on the path
+        focusCameraOnPath(scene: mapScene, pathList: pathList)
+        
         DispatchQueue.main.async {
             self.scene = mapScene
         }
         print("scene loaded")
-       // updateCurrentNode()
     }
     
     
