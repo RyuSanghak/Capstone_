@@ -2,6 +2,7 @@
 import Foundation
 import SceneKit
 import Combine
+import UIKit
 
 class MapViewModel: ObservableObject {
     @Published var maps: [IndoorMap] = []
@@ -164,7 +165,6 @@ class MapViewModel: ObservableObject {
                 }
                     
                     
-                    // SCNText로 3D 텍스트 객체 생성
                     if mapFound == true {
                         mapIndicator = "F1"
                     }
@@ -189,7 +189,7 @@ class MapViewModel: ObservableObject {
                     }
                         
                         
-                        // SCNText로 3D 텍스트 객체 생성
+                       
                         if mapFound == true {
                             mapIndicator = "F1"
                         }
@@ -267,8 +267,8 @@ class MapViewModel: ObservableObject {
     func createLineNode(from: SCNVector3, to: SCNVector3) -> SCNNode {
         let distance = sqrt(pow(to.x - from.x, 2) + pow(to.y - from.y, 2) + pow(to.z - from.z, 2))
         
-        let cylinder = SCNCylinder(radius: 0.05, height: CGFloat(distance))
-        cylinder.firstMaterial?.diffuse.contents = UIColor.blue // Set the line color
+        let cylinder = SCNCylinder(radius: 0.03, height: CGFloat(distance))
+        cylinder.firstMaterial?.diffuse.contents = UIColor.link // Set the line color
         
         let lineNode = SCNNode(geometry: cylinder)
         
@@ -293,8 +293,8 @@ class MapViewModel: ObservableObject {
 
     
     func createSphereNode(position: SCNVector3) -> SCNNode {
-        let sphere = SCNSphere(radius: 0.1)
-//        sphere.firstMaterial?.diffuse.contents = UIColor.blue
+        let sphere = SCNSphere(radius: 0.07)
+        sphere.firstMaterial?.diffuse.contents = UIColor.blue
 
         let sphereNode = SCNNode(geometry: sphere)
         sphereNode.position = position
@@ -363,7 +363,7 @@ class MapViewModel: ObservableObject {
         for nodeName in pathList {
             if let node = nodeList.first(where: { $0.name == nodeName }) {
                 let sphereNode = createSphereNode(position: SCNVector3(x: node.x, y: node.y, z: node.z))
-                sphereNode.geometry?.firstMaterial?.diffuse.contents = UIColor.gray
+                sphereNode.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
                 scene.rootNode.addChildNode(sphereNode)
             }
         }
@@ -399,4 +399,20 @@ class MapViewModel: ObservableObject {
     
     
     
+}
+
+extension UIColor {
+    convenience init(hex: String, alpha: CGFloat = 1.0) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+
+        var rgb: UInt64 = 0
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+
+        let red = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
+        let green = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
+        let blue = CGFloat(rgb & 0x0000FF) / 255.0
+
+        self.init(red: red, green: green, blue: blue, alpha: alpha)
+    }
 }

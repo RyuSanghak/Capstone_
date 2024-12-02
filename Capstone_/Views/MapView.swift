@@ -16,7 +16,7 @@ struct MapView: View {
             if let scene = viewModel.scene {
                 SceneView(
                     scene: scene,
-                    options: [.allowsCameraControl, .autoenablesDefaultLighting]
+                    options: [.autoenablesDefaultLighting]
                 )
                 .edgesIgnoringSafeArea(.all)
             } else {
